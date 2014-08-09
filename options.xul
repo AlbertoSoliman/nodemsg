@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE vbox SYSTEM "chrome://nodemsg/locale/subtitles.dtd">
+
+<vbox xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" >
+
+   <setting type="bool" 
+         pref="extensions.nodemsg.openNewWin"
+         title="&quasichatNewWindow.setitle;" />
+
+   <setting type="string" 
+         pref="extensions.nodemsg.multiAddr"
+         title="&quasichatMultiAddr.setitle;" />
+
+   <setting type="integer" 
+         pref="extensions.nodemsg.sharedPort"
+         title="&quasichatSharedPort.setitle;" />
+
+   <setting type="file" 
+         pref="extensions.nodemsg.localNode"
+         title="&quasichatLocalNode.setitle;"
+         desc="&quasichatLocalNode.desc;" />
+
+   <setting class="nodemsg" type="control" dir="reverse">
+        <button icon="apply" 
+                tooltiptext="&quasichatTestBtn.tooltiptext;"
+                label="&quasichatTestBtn.label;" />
+            <separator style="width: 1em;" />
+        <label class="text-link" value="&quasichatOptLink.label;" />
+        <image class="text-link" src="chrome://nodemsg/skin/toggle.png" />
+   </setting>
+
+</vbox>

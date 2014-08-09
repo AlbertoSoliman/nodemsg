@@ -1,0 +1,5 @@
+content   nodemsg	chrome/content/
+
+skin      nodemsg	classic/1.0   chrome/skin/
+locale    nodemsg	en-US         chrome/locale/en-US/
+locale    nodemsg	ru-RU         chrome/locale/ru-RU/

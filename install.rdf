@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+  <Description about="urn:mozilla:install-manifest">
+      <em:id>nodemsg@code.google.com</em:id>
+      <em:version>0.1.0</em:version>
+
+		<em:localized>
+		  <Description>
+			<em:locale>ru-RU</em:locale>
+			<em:name>Node Messenger</em:name>
+<em:description>Обмен широковещательными сообщениями в одноранговой сети (UDP), требует Node.js (exe).</em:description>
+			<em:creator>&lt;kannoner@gmail.com&gt;</em:creator>
+			<em:homepageURL>http://code.google.com/u/kannoner/</em:homepageURL>
+		  </Description>
+		</em:localized>
+
+      <em:name>Node Messenger</em:name>
+<em:description>The broadcast serverless quasi-chat for LAN via UDP and the local Node.js (http://nodejs.org/).
+</em:description>
+      <em:creator>&lt;kannoner@gmail.com&gt;</em:creator>
+	  <em:homepageURL>http://code.google.com/u/kannoner/</em:homepageURL>
+      <em:bootstrap>true</em:bootstrap>
+      <em:type>2</em:type>	<!-- type=extension -->
+      <em:optionsType>2</em:optionsType> <!-- optionsType=inline options -->
+      <em:icon64URL>chrome://nodemsg/skin/white-icon.png</em:icon64URL>
+      <em:unpack>true</em:unpack>
+        <em:targetApplication>
+           <!-- Firefox -->
+           <Description>
+                <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
+                <em:minVersion>22.0</em:minVersion>
+                <em:maxVersion>32.*</em:maxVersion>
+           </Description>
+        </em:targetApplication>
+
+  </Description>
+</RDF>
