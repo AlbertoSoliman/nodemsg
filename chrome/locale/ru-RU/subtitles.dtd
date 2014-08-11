@@ -1,0 +1,22 @@
+<!ENTITY quasichatNewWindow.setitle "Открывать в Новом Окне:">
+<!ENTITY quasichatLocalNode.setitle "Внешняя Команда:">
+<!ENTITY quasichatLocalNode.desc    "требуется Node.js (http://nodejs.org/)">
+<!ENTITY quasichatMultiAddr.setitle "Широковещательный Адрес:">
+<!ENTITY quasichatSharedPort.setitle "Общий Порт:">
+<!ENTITY quasichatSendBtn.tooltiptext "отправить сообщение">
+<!ENTITY quasichatClearBtn.tooltiptext "очистить область передатчик или (затем) список уведомлений">
+<!ENTITY quasichatCheckbox.tooltiptext "не принимать новые соощения">
+<!ENTITY quasichatLastline.tooltiptext "последняя строчка">
+<!ENTITY quasichatBelow.tooltiptext "приёмник">
+<!ENTITY quasichatAbove.tooltiptext "передатчик">
+<!ENTITY quasichatOptLink.label "Перейти на Рабочую Страницу">
+<!ENTITY quasichatTestBtn.label "Диагностика">
+<!ENTITY quasichatTestBtn.tooltiptext "существует ли команда">
+<!ENTITY quasichatDivContent.label "Используй соответствующую страницу Настроек и команду Обновить (F5).">
+<!ENTITY quasichatRunBtn.tooltiptext "перезапустить внешнюю команду">
+<!ENTITY quasichatCloseBtn.tooltiptext "закрыть одну планку">
+<!ENTITY quasichatExCmd.tooltiptext "внешняя команда">
+<!ENTITY quasichatAckHeader.tooltiptext "порядок аналогичный сообщениям приёмника">
+<!ENTITY quasichatPlaceholder.value "НЕТ">
+<!ENTITY quasichatLastMsg.tooltiptext "последнее сообщение">
+<!ENTITY quasichatLastMsg.hintBtnbar " &lt; - Если кнопка &quot;SEND&quot; обездвижина, начните с &quot;RUN&quot; - &gt; ">

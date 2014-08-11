@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<!DOCTYPE window SYSTEM "chrome://nodemsg/locale/subtitles.dtd">
+
+<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        id="main-window" contextmenu="main-menu"
+        title="Node Messenger" >
+
+<html:link rel="icon" href="chrome://nodemsg/skin/toggle.png" style="display:none" />
+    
+<html:style type="text/css" xmlns="http://www.w3.org/1999/xhtml">
+    form { margin: 1ex }
+    input[type="number"] { width: 5em }
+    description.header { width: 11ex }
+    textbox.timeStamp { width: 6em; text-align: center; }
+    notification > button { visibility: collapse; }
+    notification:hover > button { visibility: visible; }
+    notification:only-child:hover > button { visibility: collapse; }
+    form > label { margin-left: 1em }
+    separator { width: 1em }
+</html:style>
+
+<commandset oncommand="happening(event);">
+    <command id="cmd_send" label="SEND" accesskey="s" disabled="true"
+                tooltiptext="&quasichatSendBtn.tooltiptext;" />
+    <command id="cmd_clear" label="CLEAR" accesskey="c" class="clear" icon="clear" 
+                tooltiptext="&quasichatClearBtn.tooltiptext;" />
+    <command id="cmd_run" label="RUN" accesskey="r" class="run" 
+                tooltiptext="&quasichatRunBtn.tooltiptext;" />
+</commandset>
+
+<menupopup id="main-menu">
+    <menuitem command="cmd_send" />
+    <menuitem command="cmd_clear" />
+    <menuitem command="cmd_run" />
+    <menuseparator />
+</menupopup>
+    
+<vbox>
+    <html:form xmlns="http://www.w3.org/1999/xhtml">
+        <label for="form-addr">broadcast address:</label>
+            <input name="addr" id="form-addr" type="text" readonly="true" />
+        <label for="form-port">shared port:</label>
+            <input name="port" id="form-port" type="number" readonly="true" />
+        <div style="float: right;">
+        <label for="form-btn">&quasichatDivContent.label;</label>
+        <input id="form-btn" type="submit" disabled="true" value="options..."
+               title="will come with next version" />
+        </div>
+    </html:form>
+
+    <hbox align="start" class="ack">
+    <description class="header" value="acknowledgement:" 
+                 tooltiptext="&quasichatAckHeader.tooltiptext;" />
+    <textbox class="ack" flex="1" multiline="false" readonly="true"
+             tooltiptext="&quasichatExCmd.tooltiptext;" />
+    <textbox class="timeStamp" readonly="true" multiline="false" 
+             value="&quasichatPlaceholder.value;" 
+             placeholder="&quasichatPlaceholder.value;" 
+             tooltiptext="time stamp" />
+    </hbox>
+
+    <vbox class="notificationbox" dir="reverse">
+        <notification type="info" onclick="notificationClick(this);"
+            image="chrome://global/skin/icons/information-16.png">
+            <button label="hide" icon="close" 
+                    tooltiptext="&quasichatCloseBtn.tooltiptext;"
+                    oncommand="this.parentNode.close();" />
+            <description class="monospace" value="" />
+            <html:span style="display: inline; float: right;"></html:span>
+        </notification>
+    </vbox>
+
+    <hbox align="end" class="receiver">
+    <description class="header" value="receiver:"
+            tooltiptext="&quasichatBelow.tooltiptext;" />
+    <textbox flex="1" multiline="false" readonly="true" 
+             tooltiptext="&quasichatLastMsg.tooltiptext;" />
+    <textbox class="timeStamp" readonly="true" 
+             multiline="false" 
+             tooltiptext="time stamp" />
+    </hbox>
+    
+    <html:textarea wrap="off"></html:textarea>
+    <hbox>
+        <separator />
+        <checkbox label="ignore" disabled="true" tooltiptext="&quasichatCheckbox.tooltiptext;" />
+        <hbox flex="1" pack="center">
+            <button command="cmd_send" />
+            <button command="cmd_clear" />
+            <separator />
+            <description value="&quasichatLastMsg.hintBtnbar;" />
+            <separator />
+        </hbox>
+        <button command="cmd_run" />
+    </hbox>
+
+    <textbox class="send" rows="6" autofocus="true" multiline="true" flex="1" />
+
+    <hbox align="center" class="transmitter">
+    <description class="header" value="transmitter:" 
+            tooltiptext="&quasichatAbove.tooltiptext;" />
+    <textbox flex="1" multiline="false" readonly="true" 
+             tooltiptext="&quasichatLastline.tooltiptext;" />
+    <textbox class="timeStamp" readonly="true" multiline="false" tooltiptext="time stamp" />
+    </hbox>
+    
+</vbox>
+<script type="application/javascript" src="chrome://nodemsg/content/content.js">
+</script>
+</window>

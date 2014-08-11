@@ -7,11 +7,11 @@
          pref="extensions.nodemsg.openNewWin"
          title="&quasichatNewWindow.setitle;" />
 
-   <setting type="string" 
+   <setting class="nodemsg" type="string" 
          pref="extensions.nodemsg.multiAddr"
          title="&quasichatMultiAddr.setitle;" />
 
-   <setting type="integer" 
+   <setting class="nodemsg" type="integer" 
          pref="extensions.nodemsg.sharedPort"
          title="&quasichatSharedPort.setitle;" />
 

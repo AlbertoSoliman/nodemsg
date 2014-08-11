@@ -18,7 +18,7 @@
 <em:description>The broadcast serverless quasi-chat for LAN via UDP and the local Node.js (http://nodejs.org/).
 </em:description>
       <em:creator>&lt;kannoner@gmail.com&gt;</em:creator>
-	  <em:homepageURL>http://code.google.com/u/kannoner/</em:homepageURL>
+	  <em:homepageURL>http://code.google.com/p/nodemsg/</em:homepageURL>
       <em:bootstrap>true</em:bootstrap>
       <em:type>2</em:type>	<!-- type=extension -->
       <em:optionsType>2</em:optionsType> <!-- optionsType=inline options -->
@@ -28,7 +28,7 @@
            <!-- Firefox -->
            <Description>
                 <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
-                <em:minVersion>22.0</em:minVersion>
+                <em:minVersion>23.0</em:minVersion>
                 <em:maxVersion>32.*</em:maxVersion>
            </Description>
         </em:targetApplication>
