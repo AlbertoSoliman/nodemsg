@@ -9,6 +9,7 @@ const classDescription = "about:nodemsg"
 const chromeSkin    = "chrome://global/skin/icons"
 const REGEX_TRIM    = /(^\s+)|(\s+$)/g
 const LOCAL_HOST = '127.0.0.1', PREFIX = ">", INTERVAL = 111; // x 2 for updateView
+    //nst XPATH_ACK_STAMP = "hbox.ack .timeStamp"
 const FATAL_BUG = [ "storage-or-component-of-page-is-unready",
                    "You can use Reload (F5) command, as least action." ];
 const INFORM_BUG = [ "informal-packet", "See detail in Web Console via Developer Menu." ];
@@ -27,6 +28,13 @@ function str2djb(astr) {    // i.e. md5 that is not md5
 * integers. Since we want the results to be always positive, convert the
 * signed int to an unsigned by doing an unsigned bitshift. */
   return hash >>> 0;
+}
+
+function setClrAck(avalue)
+{
+    let thenode = document.querySelector("deck");
+    if (avalue) thenode.appendChild(thenode.firstElementChild);
+    thenode.firstElementChild.value = avalue || ""; //  placeholder
 }
 
 function getFirstLine(astr, areverse)
@@ -74,9 +82,10 @@ var rendezvous = {
 
     doCmd : function(atype, amsg)
     {
+        if (this.socket) return; // guard
         let ablank = { "type": atype }
         switch (atype) {
-        case "gab" : ablank.msg = amsg || " ";
+        case "gab" : ablank.msg = encodeURIComponent(amsg) || " ";
             break;
         case "bot" : ablank.msg = amsg || this.salute;
             break;
@@ -114,8 +123,8 @@ var rendezvous = {
         if ((thelen >> 1) && (ablank.type == "gab"))
         {            
             this.hash = str2djb(ablank.msg);
-    //  TODO:   if len >> 1 then ask for ack
-            insetrMsg(ablank.msg);
+            ablank.msg = decodeURIComponent(ablank.msg);
+                insetrMsg(ablank.msg);
             let thenode = document.querySelector("hbox.transmitter > textbox[flex]");
                 thenode.value = getFirstLine(ablank.msg, true); // last line
             cmdClear(null); //cument.getElementById("cmd_clear").doCommand();
@@ -123,35 +132,38 @@ var rendezvous = {
                 thenode.value = (new Date()).toLocaleTimeString();
         }
 
-        this._isbn = window.setInterval( function() {
-            let thebug = null, timeStamp = rendezvous.timeStamp;
-            try {
-                if (!(rendezvous.poll()))
-                if ((++rendezvous.counter) >> 3)
-                {
-                    window.setTimeout( function() { rendezvous.doCmd("bot") }, 3 );
-                    timeStamp = 0;
-                }
-            }
-            catch (err) {
-                thebug = err;
-                Components.utils.reportError(err);
-            }
-
-            let span = Math.abs(rendezvous.timeStamp - timeStamp);
-            if (thebug || (span > (INTERVAL * 2))) // overstress
-            {
-                window.setTimeout( function() { rendezvous.reset() }, 0 );
-                if (thebug) reportBug(thebug, "udp-write");
-                    else if (timeStamp) 
-                        window.console.log( ADDON_ISBN, 
-                            "overstress-stop-polling, delay:", span );
-            }
-
-        }, INTERVAL );
+        this._isbn = window.setInterval( function() { rendezvous.ticker() }, INTERVAL );
         this.socket = scriptible;
         this.timeStamp = Date.now();
     },  //  rendezvous.doCmd
+
+    ticker : function() // setInterval
+    {
+        if (!this.socket) return; // guard
+        let thebug = null, timeStamp = this.timeStamp;
+        try {
+            if (!(this.poll()))
+            if ((++this.counter) >> 3)
+            {
+                window.setTimeout( function() { rendezvous.doCmd("bot") }, (INTERVAL >> 1) );
+                timeStamp = 0;
+            }
+        }
+        catch (err) {
+            thebug = err;
+            Components.utils.reportError(err);
+        }
+
+        let span = Math.abs(this.timeStamp - timeStamp);
+        if (thebug || (span > (INTERVAL * 2))) // overstress
+        {
+            window.setTimeout( function() { rendezvous.reset() }, 0 );
+            if (thebug) reportBug(thebug, "udp-write");
+                else if (timeStamp) 
+                    window.console.log( ADDON_ISBN, 
+                        "overstress-stop-polling, delay:", span );
+        }
+    }, //  ticker : function() // setInterval
 
     poll : function()
     {
@@ -161,8 +173,7 @@ var rendezvous = {
         if (numbyte) themsg = this.socket.read(numbyte) || "";
         if (!themsg) return 0; // no data
 
-        let thenode = document.querySelector("hbox.ack > .timeStamp");
-        if (nodemsg.running) thenode.value = (new Date()).toLocaleTimeString();
+        if (nodemsg.running) setClrAck((new Date()).toLocaleTimeString());
         if ((themsg || "").indexOf(":") > 1) 
         {
             this.job2face(themsg); 
@@ -186,6 +197,7 @@ var rendezvous = {
                 themsg = themsg.replace(/^\s*\d+\s+/, "");
                 timeStamp = Number(timeStamp.trim()) || parseInt(0);
                 timeStamp = new Date(timeStamp || Date.now());
+            themsg = decodeURIComponent(themsg);
             insetrMsg(themsg, domain);
             let thenode = document.querySelector("hbox.receiver > textbox[flex]");
                 thenode.value = getFirstLine(themsg);
@@ -215,35 +227,42 @@ var rendezvous = {
 var nodemsg = {
     _running : false,
     _isbn   : null, // node.exe or winid
-    storage : null, //  first step of initialize
+    storage : {}, //  first step of initialize
     host    : null,
     timeStamp: Date.now(), // notify subsystem (observer)
     counter : 0,
 
     load : function()
     {
-        if (this._isbn && this.storage)
+        let theobj = null;
+        if (this.storage.getItem) theobj = this.storage.getItem(this.host);
+        if (this._isbn && this.storage.getItem)
         {
             document.querySelector("commandset")
                     .addEventListener( "command", this, false );
-            let theobj = this.storage.getItem(this.host);
-                theobj = JSON.parse(theobj) || {};
+            theobj = JSON.parse(theobj) || {};
             if (theobj.isRunning)
             {
                 window.setTimeout( function() { nodemsg.updateView() }, 0 );
                 this.running = theobj.isRunning;
                 document.querySelector("textbox.ack").value = this._isbn;
             }
+
+            let thebox = document.querySelector("deck") || {};
+            let thenode = thebox.firstElementChild;
+            for (let i = 0; i < 4; ++i)
+                 thebox.appendChild(thenode.cloneNode(false));
+    
             return;
         }
+
         //  below something wrong
-        let theobj = this.storage.getItem(this.host) || "";
         if (theobj) 
         {
             theobj = this.storage2cfg( JSON.parse(theobj) );
                 this.notify(theobj);
         };
-        document.getElementById("cmd_run").disabled = true;
+        document.getElementById("cmd_run").setAttribute("disabled", "true");
         theobj = { "topic": FATAL_BUG[0], "msg" : FATAL_BUG[1] };
             this.notify( theobj );
         return;
@@ -256,7 +275,7 @@ var nodemsg = {
         if (form)
         try {   //  first: communication line.
             let bootstrap = Components.classesByID[PC_MANAGER_CID].getService(API_REQUESTOR);
-                this.storage = bootstrap.getInterface(API_STORAGE);
+                this.storage = bootstrap.getInterface(API_STORAGE) || {};
         }
         catch (err) {
             Components.utils.reportError(err);
@@ -265,7 +284,7 @@ var nodemsg = {
             window.console.warn(err);
         }
 
-        if (this.storage)
+        if (this.storage.getItem)
         try {   //  second: component.
             let bootstrap = Components.classesByID[PC_MANAGER_CID].getService(API_INIT_WIN);
             let theobj = bootstrap.init(window);
@@ -308,12 +327,11 @@ var nodemsg = {
         {
             let newvalue = (nodemsg.running) ? "false" : "true";
             document.getElementById("cmd_send").setAttribute("disabled", newvalue);
-            if (nodemsg.running) return;
-    
-            let thenode = document.querySelector("hbox.ack > .timeStamp");
-            if (thenode) thenode.value = thenode.getAttribute("placeholder");
-            document.querySelector("hbox.transmitter > textbox[flex]").value = "";
-            return;
+            if (!nodemsg.running)
+            {
+                (document.querySelector(".transmitter > textbox[flex]") || {}).value = "";
+                 setClrAck();
+            }
         }
         }, (INTERVAL * 2), this.counter);
     },
@@ -341,7 +359,10 @@ var nodemsg = {
             if (this.running) 
             {
                 if (!(rendezvous.running))
+                {
                     rendezvous.doCmd("bot");
+                    window.console.log(ADDON_ISBN, "start polling by idle");
+                }
             }
             else
                 document.getElementById("cmd_run").doCommand();
@@ -352,7 +373,7 @@ var nodemsg = {
 
         let theobj = this.storage.getItem(this.host);
             theobj = JSON.parse(theobj);
-  window.console.log("_dvk_dbg_, observe of storage: ", theobj);
+//  window.console.log("_dvk_dbg_, observe of storage: ", theobj);
         let topic = (theobj.topic || "");        
         if ("isRunning" in theobj) this.running = theobj.isRunning;
 //        if (theobj.timeStamp == this.notifyTimeStamp) return;

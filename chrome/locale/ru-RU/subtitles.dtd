@@ -3,7 +3,7 @@
 <!ENTITY quasichatLocalNode.desc    "требуется Node.js (http://nodejs.org/)">
 <!ENTITY quasichatMultiAddr.setitle "Широковещательный Адрес:">
 <!ENTITY quasichatSharedPort.setitle "Общий Порт:">
-<!ENTITY quasichatSendBtn.tooltiptext "отправить сообщение">
+<!ENTITY quasichatSendBtn.tooltiptext "отправить сообщение и&apos;ли запрос">
 <!ENTITY quasichatClearBtn.tooltiptext "очистить область передатчик или (затем) список уведомлений">
 <!ENTITY quasichatCheckbox.tooltiptext "не принимать новые соощения">
 <!ENTITY quasichatLastline.tooltiptext "последняя строчка">
@@ -16,6 +16,8 @@
 <!ENTITY quasichatRunBtn.tooltiptext "перезапустить внешнюю команду">
 <!ENTITY quasichatCloseBtn.tooltiptext "закрыть одну планку">
 <!ENTITY quasichatExCmd.tooltiptext "внешняя команда">
+<!ENTITY quasichatAckValue.tooltiptext "окрашена когда нагружена">
+<!ENTITY quasichatTimeStamp.tooltiptext "момент события">
 <!ENTITY quasichatAckHeader.tooltiptext "порядок аналогичный сообщениям приёмника">
 <!ENTITY quasichatPlaceholder.value "НЕТ">
 <!ENTITY quasichatLastMsg.tooltiptext "последнее сообщение">

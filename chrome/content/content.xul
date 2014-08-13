@@ -13,12 +13,18 @@
     form { margin: 1ex }
     input[type="number"] { width: 5em }
     description.header { width: 11ex }
-    textbox.timeStamp { width: 6em; text-align: center; }
+    textbox.timeStamp, deck > textbox { width: 6em; text-align: center; }
+    deck > textbox { 
+        transition: background-color 10s;
+        -moz-appearance: none; 
+    }
+    deck > textbox:not(:first-child) { background-color: cornflowerblue; }
     notification > button { visibility: collapse; }
     notification:hover > button { visibility: visible; }
     notification:only-child:hover > button { visibility: collapse; }
     form > label { margin-left: 1em }
     separator { width: 1em }
+    notification > span { display: inline; float: right; }
 </html:style>
 
 <commandset oncommand="happening(event);">
@@ -55,10 +61,11 @@
                  tooltiptext="&quasichatAckHeader.tooltiptext;" />
     <textbox class="ack" flex="1" multiline="false" readonly="true"
              tooltiptext="&quasichatExCmd.tooltiptext;" />
-    <textbox class="timeStamp" readonly="true" multiline="false" 
-             value="&quasichatPlaceholder.value;" 
-             placeholder="&quasichatPlaceholder.value;" 
-             tooltiptext="time stamp" />
+    <deck>
+        <textbox readonly="true" multiline="false" 
+                 placeholder="&quasichatPlaceholder.value;" 
+                 tooltiptext="&quasichatAckValue.tooltiptext;" />
+    </deck>
     </hbox>
 
     <vbox class="notificationbox" dir="reverse">
@@ -68,7 +75,7 @@
                     tooltiptext="&quasichatCloseBtn.tooltiptext;"
                     oncommand="this.parentNode.close();" />
             <description class="monospace" value="" />
-            <html:span style="display: inline; float: right;"></html:span>
+            <html:span></html:span>
         </notification>
     </vbox>
 
@@ -77,9 +84,8 @@
             tooltiptext="&quasichatBelow.tooltiptext;" />
     <textbox flex="1" multiline="false" readonly="true" 
              tooltiptext="&quasichatLastMsg.tooltiptext;" />
-    <textbox class="timeStamp" readonly="true" 
-             multiline="false" 
-             tooltiptext="time stamp" />
+    <textbox class="timeStamp" readonly="true" multiline="false" 
+             tooltiptext="&quasichatTimeStamp.tooltiptext;" />
     </hbox>
     
     <html:textarea wrap="off"></html:textarea>
@@ -103,7 +109,8 @@
             tooltiptext="&quasichatAbove.tooltiptext;" />
     <textbox flex="1" multiline="false" readonly="true" 
              tooltiptext="&quasichatLastline.tooltiptext;" />
-    <textbox class="timeStamp" readonly="true" multiline="false" tooltiptext="time stamp" />
+    <textbox class="timeStamp" readonly="true" multiline="false" 
+             tooltiptext="&quasichatTimeStamp.tooltiptext;" />
     </hbox>
     
 </vbox>

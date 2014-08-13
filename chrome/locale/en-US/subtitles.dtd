@@ -3,7 +3,7 @@
 <!ENTITY quasichatLocalNode.desc    "Node.js (exe) is required (http://nodejs.org/)">
 <!ENTITY quasichatMultiAddr.setitle "Broadcast Address:">
 <!ENTITY quasichatSharedPort.setitle "Shared Port:">
-<!ENTITY quasichatSendBtn.tooltiptext "send message">
+<!ENTITY quasichatSendBtn.tooltiptext "send and/or poll messages">
 <!ENTITY quasichatClearBtn.tooltiptext "clear transmitter area or (then) list of notifications">
 <!ENTITY quasichatCheckbox.tooltiptext "ignore new messages">
 <!ENTITY quasichatLastline.tooltiptext "last line">
@@ -16,7 +16,9 @@
 <!ENTITY quasichatRunBtn.tooltiptext "(re) start node (exe)">
 <!ENTITY quasichatCloseBtn.tooltiptext "close one line">
 <!ENTITY quasichatExCmd.tooltiptext "external command">
-<!ENTITY quasichatAckHeader.tooltiptext "order like incoming msg's of receiver">
+<!ENTITY quasichatAckValue.tooltiptext "color is just now">
+<!ENTITY quasichatTimeStamp.tooltiptext "time stamp">
+<!ENTITY quasichatAckHeader.tooltiptext "order like incoming msg&apos;s of receiver">
 <!ENTITY quasichatPlaceholder.value "NO">
 <!ENTITY quasichatLastMsg.tooltiptext "last message">
 <!ENTITY quasichatLastMsg.hintBtnbar " &lt; - if &quot;SEND&quot; is disabled, starts with &quot;RUN&quot; - &gt; ">

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+//    "name": "commander", "version": "2.2.0"
 const DESCRIPTION = "The Node Messenger via udp:\n\t- listens to a given port\n\t" +
     "- relays a local (127.0.0.1) data to a given (multi-) address\n\t" +
     "- flushes a remote data to a local browser as reply,\n" +
@@ -8,7 +9,7 @@ const DESCRIPTION = "The Node Messenger via udp:\n\t- listens to a given port\n\
 const PREFIX    = "  ";     // double space
 const HOST      = '127.0.0.1';  //  "192.168.1.33";
 const ENCODING  = 'utf8';   // buffer to String
-const MAX_LEN   = 505;      // limit to len of one datagram
+const MAX_LEN   = 1024;      // limit to len of one datagram
 
 var PORT    = parseInt(8181),
     ADDRESS = "255.255.255.255", //   "192.168.1.255", 
@@ -99,7 +100,7 @@ var task    = {
 
 server.on('listening', function () {
     var address = server.address();
-    server.setBroadcast(true);
+    server.setBroadcast(true); // ?
     console.log('UDP Server listening on ' + address.address + ":" + address.port);
 });
 /*
