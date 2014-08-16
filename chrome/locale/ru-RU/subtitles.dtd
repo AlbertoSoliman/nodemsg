@@ -21,4 +21,4 @@
 <!ENTITY quasichatAckHeader.tooltiptext "порядок аналогичный сообщениям приёмника">
 <!ENTITY quasichatPlaceholder.value "НЕТ">
 <!ENTITY quasichatLastMsg.tooltiptext "последнее сообщение">
-<!ENTITY quasichatLastMsg.hintBtnbar " &lt; - Если кнопка &quot;SEND&quot; обездвижина, начните с &quot;RUN&quot; - &gt; ">
+<!ENTITY quasichatLastMsg.introHint "Страница не привязана к внешнему процессу, используй кнопку &quot;RUN&quot;.">

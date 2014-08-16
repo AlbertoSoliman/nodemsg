@@ -70,7 +70,7 @@ function insetrMsg(amsg, aprefix)
 var rendezvous = {
     OPEN_BLOCKING : parseInt(1),
     salute  : ADDON_ISBN,
-    port    : 70,
+    port    : 8181,
     _isbn   : null, //  setInterval( function() { job.ticker() }, INTERVAL );
 //    output  : {}, //    last letter
     socket  : null, //  .createInstance(interfaces.nsIScriptableInputStream);
@@ -83,15 +83,18 @@ var rendezvous = {
     doCmd : function(atype, amsg)
     {
         if (this.socket) return; // guard
-        let ablank = { "type": atype }
+        let ablank = { "type": "gab" }
         switch (atype) {
         case "gab" : ablank.msg = encodeURIComponent(amsg) || " ";
             break;
-        case "bot" : ablank.msg = amsg || this.salute;
+        case "bot" : ablank.type = "bot";
+            ablank.msg = amsg || this.salute;
             break;
-        default: 
-            ablank.type = "escape";
+        case "escape" : ablank.type = "escape";
             if (amsg) ablank.msg = amsg || "";
+            break;
+        default: atype = null; // "raw" 
+            ablank.msg = encodeURIComponent(amsg);
         }
 
         let unitSocket = Components.classes["@mozilla.org/network/socket-transport-service;1"]
@@ -104,7 +107,7 @@ var rendezvous = {
             scriptible.init(inputStream);
         let outstream = socketTransport.openOutputStream(this.OPEN_BLOCKING, 0, 0);
         try {
-            let packet = JSON.stringify(ablank); // it is packet
+            let packet = (atype) ? JSON.stringify(ablank) : ablank.msg;
                 outstream.write( packet, packet.length );
         }
             finally { outstream.close() }
@@ -118,11 +121,11 @@ var rendezvous = {
             throw err;
         }
 //    window.console.log("_dvk_dbg_, msg is send, available: ", thelen);
-            thelen = ablank.msg.length;
+            thelen = (ablank.msg || "").length;
         this.hash = parseInt(0);
         if ((thelen >> 1) && (ablank.type == "gab"))
         {            
-            this.hash = str2djb(ablank.msg);
+            thelen = str2djb(ablank.msg);
             ablank.msg = decodeURIComponent(ablank.msg);
                 insetrMsg(ablank.msg);
             let thenode = document.querySelector("hbox.transmitter > textbox[flex]");
@@ -130,6 +133,7 @@ var rendezvous = {
             cmdClear(null); //cument.getElementById("cmd_clear").doCommand();
             thenode = document.querySelector("hbox.transmitter > .timeStamp");
                 thenode.value = (new Date()).toLocaleTimeString();
+            this.hash = thelen;
         }
 
         this._isbn = window.setInterval( function() { rendezvous.ticker() }, INTERVAL );
@@ -145,7 +149,9 @@ var rendezvous = {
             if (!(this.poll()))
             if ((++this.counter) >> 3)
             {
-                window.setTimeout( function() { rendezvous.doCmd("bot") }, (INTERVAL >> 1) );
+                if (nodemsg.running) window.setTimeout( 
+                        function() { rendezvous.doCmd("bot") }, 
+                            (INTERVAL >> 1) );
                 timeStamp = 0;
             }
         }
@@ -325,13 +331,19 @@ var nodemsg = {
         window.setTimeout( function(alevel) {
         if (alevel == nodemsg.counter)
         {
-            let newvalue = (nodemsg.running) ? "false" : "true";
-            document.getElementById("cmd_send").setAttribute("disabled", newvalue);
-            if (!nodemsg.running)
+            let thenode = document.querySelector("textbox.ack") || {};
+            if (!(nodemsg.running)) 
             {
-                (document.querySelector(".transmitter > textbox[flex]") || {}).value = "";
-                 setClrAck();
+                thenode.value = "";
+                setClrAck();
             }
+            thenode.readOnly = nodemsg.running;
+//          if (!(rendezvous.running)) rendezvous.hash = 0;
+            let thestr = document.querySelector("textbox.send").value;
+                thestr = (thestr || "").replace(REGEX_TRIM, "");
+            let newvalue = (nodemsg.running || thestr.length) ? "false" : "true";
+            document.getElementById("cmd_send").setAttribute("disabled", newvalue);
+  //        (document.querySelector(".transmitter > textbox[flex]") || {}).value = "";
         }
         }, (INTERVAL * 2), this.counter);
     },
@@ -374,7 +386,8 @@ var nodemsg = {
         let theobj = this.storage.getItem(this.host);
             theobj = JSON.parse(theobj);
 //  window.console.log("_dvk_dbg_, observe of storage: ", theobj);
-        let topic = (theobj.topic || "");        
+        let topic = (theobj.topic || "");
+        let oldvalue = this.running;
         if ("isRunning" in theobj) this.running = theobj.isRunning;
 //        if (theobj.timeStamp == this.notifyTimeStamp) return;
         let value = [ "timeStamp", this.host ].join(".");
@@ -386,10 +399,12 @@ var nodemsg = {
             this.timeStamp = value, this.updateView();
             if (topic.contains("component-init")) return;
             if (this.running) return; // if cruise or internal error
-
-            let thecfg = this.storage2cfg(theobj);
-                this.notify(thecfg);
-            rendezvous.reset();
+            if ((oldvalue != this.running) || (theobj.class || "").contains("run"))
+            {
+                let thecfg = this.storage2cfg(theobj);
+                    this.notify(thecfg);
+                rendezvous.reset();
+            }
         }
         return; //  "nsPref:changed" - PREF_NOTIFY
     },
@@ -414,8 +429,9 @@ var nodemsg = {
             try {
                 let thenode = document.querySelector("textbox.send");
                 let thestr = (thenode.value || "").replace(REGEX_TRIM, "");
-                if (str2djb(thestr) != rendezvous.hash)
-                    rendezvous.doCmd("gab", thestr);
+                if (thestr.length || this.running)
+                if (str2djb(thestr) != rendezvous.hash) // "raw" ?
+                    rendezvous.doCmd((this.running) ? "gab" : "raw", thestr);
             }
             catch (err) {
                 thebug = err;
@@ -470,7 +486,7 @@ var nodemsg = {
         {
             label = (thelast.querySelector("span") || {}).textContent;
             value = (label || "").match(/\w+/) || ([ "0" ]);
-            value = (parseInt((value[0] || "0").trim()) || parseInt(0)) + 1;
+            value = (parseInt((value[0] || "0").trim()) || parseInt(1)) + 1;
             let thespan = thenode.querySelector("span");
                 thespan.textContent = [ " (", ") " ].join(value);
             thebox.replaceChild(thenode, thelast);
@@ -488,8 +504,7 @@ function notificationClick(abox)
 
 function happening(anevt)
 {
-    //  anevt.target is cmd dom node
-    nodemsg.updateView();
+    nodemsg.updateView();   //  anevt.target is cmd dom node
     document.querySelector(".transmitter > .timeStamp").value = "";
 }
 

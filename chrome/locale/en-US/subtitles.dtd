@@ -21,4 +21,4 @@
 <!ENTITY quasichatAckHeader.tooltiptext "order like incoming msg&apos;s of receiver">
 <!ENTITY quasichatPlaceholder.value "NO">
 <!ENTITY quasichatLastMsg.tooltiptext "last message">
-<!ENTITY quasichatLastMsg.hintBtnbar " &lt; - if &quot;SEND&quot; is disabled, starts with &quot;RUN&quot; - &gt; ">
+<!ENTITY quasichatLastMsg.introHint "The page is not bound to the external process, use button &quot;RUN&quot;.">

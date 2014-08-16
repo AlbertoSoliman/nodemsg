@@ -59,7 +59,8 @@
     <hbox align="start" class="ack">
     <description class="header" value="acknowledgement:" 
                  tooltiptext="&quasichatAckHeader.tooltiptext;" />
-    <textbox class="ack" flex="1" multiline="false" readonly="true"
+    <textbox class="ack" flex="1" multiline="false" 
+             placeholder="&quasichatLastMsg.introHint;" 
              tooltiptext="&quasichatExCmd.tooltiptext;" />
     <deck>
         <textbox readonly="true" multiline="false" 
@@ -96,13 +97,12 @@
             <button command="cmd_send" />
             <button command="cmd_clear" />
             <separator />
-            <description value="&quasichatLastMsg.hintBtnbar;" />
-            <separator />
         </hbox>
         <button command="cmd_run" />
     </hbox>
 
-    <textbox class="send" rows="6" autofocus="true" multiline="true" flex="1" />
+    <textbox class="send" rows="6" autofocus="true" multiline="true" flex="1"
+             oninput="nodemsg.updateView();" />
 
     <hbox align="center" class="transmitter">
     <description class="header" value="transmitter:" 

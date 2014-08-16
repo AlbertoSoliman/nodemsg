@@ -265,7 +265,6 @@ var gInlineObserver = {
         let commonerr = "Script does not exist - ".concat(ascript);
         var thecmd = Services.prefs.getCharPref(PREF_NODE_EXE) || "";
 //      if (thecmd.length) thecmd = [ thecmd, ascript ].join(" ");
-  //        else thecmd = ascript;
         var process = this.launch = Components.classes["@mozilla.org/process/util;1"].createInstance(Ci.nsIProcess);
         let ObserverHandler = {
 			// subject refers to the process nsIProcess object
@@ -297,12 +296,25 @@ var gInlineObserver = {
         if (!(thefile.exists())) throw( Components.results.NS_ERROR_FILE_TARGET_DOES_NOT_EXIST );
         if (!(thefile.isFile())) throw( Components.results.NS_ERROR_FILE_IS_DIRECTORY );
 
+        let permissions = (thefile.permissions || "").toString();
+        if (!(isWinOS()) && (permissions.length >> 1))
         {
-            awin.console.log(ADDON_ISBN, "script permissions:", thefile.permissions);
+            let thenum = parseInt(permissions[1] || "0");
+            if (thenum == ((thenum >> 1) << 1))
+            {
+                    thenum >>= 1;   // even, i.e. no permission to execute
+                thenum = (thenum == ((thenum >> 1) << 1)) ? 5 : 7;
+                thenum = [ permissions[0], (permissions[2] || "0") ].join(thenum);
+                thefile.permissions = parseInt(thenum);
+            }
+        }
+
+        {
+            awin.console.log(ADDON_ISBN, "script permissions: ", thefile.permissions);
             awin.console.log(ADDON_ISBN, "external cmd:");
             awin.console.log(thecmd, " ", ascript);
         }
-            
+
             let theline = ["-V"];
             if (thecmd)
             {
@@ -348,13 +360,13 @@ function setDefaultPrefs(areason)
 	thebranch.setBoolPref(thename, (areason != APP_STARTUP));
 //  TODO: test win OS for .
     thebranch.setCharPref(getLastToken(PREF_ADDRESS), MULTI_ADDR);
-    thebranch.setIntPref(getLastToken(PREF_PORT), 70); // 70/TCP,UDP 	Gopher
+    thebranch.setIntPref(getLastToken(PREF_PORT), 8181);
     thebranch.setIntPref(getLastToken(PREF_NOTIFY), 0);
 	thebranch.setBoolPref(getLastToken(PREF_NEW_WIN), false);
 
+        thename = getLastToken(PREF_NODE_EXE);
     if (isWinOS()) // winnt
     try {
-        thename = getLastToken(PREF_NODE_EXE);
         thebranch.setCharPref(thename, "node.exe");
     let thefile = Components.classes["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
             thefile.initWithPath(WINOS_NODEJS);
@@ -365,6 +377,7 @@ function setDefaultPrefs(areason)
     catch (err) {
 	   Components.utils.reportError(err)
     }
+        else thebranch.setCharPref(thename, "");
 }   //   setDefaultPrefs(areason)
 
 function startup(data, areason)

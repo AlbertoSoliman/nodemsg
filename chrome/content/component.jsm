@@ -211,7 +211,7 @@ var NodeMonitor = {
         if (!(thefile.isFile())) throw(Components.results.NS_ERROR_FILE_IS_DIRECTORY);
 
         {
-            awin.console.log(ADDON_ISBN, ", script permissions:", thefile.permissions);
+            awin.console.log(ADDON_ISBN, ", script permissions: ", thefile.permissions);
             awin.console.log(ADDON_ISBN, ", external cmd:");
             awin.console.log(thecmd, " ", this.resource);
         }
@@ -295,7 +295,7 @@ var NodeMonitor = {
                 return;
             }
         }
-
+        if (therun) theobj["class"] = "run";
         this.updateItem(thehost, theobj);
 //        setTimeout( function() { notify5pref(NodeMonitor.host) }, 1 );
         notify5pref.doCmd( thehost);

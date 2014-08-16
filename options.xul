@@ -9,7 +9,8 @@
 
    <setting class="nodemsg" type="string" 
          pref="extensions.nodemsg.multiAddr"
-         title="&quasichatMultiAddr.setitle;" />
+         title="&quasichatMultiAddr.setitle;" 
+        desc=" or bcast attribute of ifconfig" />
 
    <setting class="nodemsg" type="integer" 
          pref="extensions.nodemsg.sharedPort"
