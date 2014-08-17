@@ -5,13 +5,15 @@
 <!ENTITY quasichatSharedPort.setitle "Shared Port:">
 <!ENTITY quasichatSendBtn.tooltiptext "send and/or poll messages">
 <!ENTITY quasichatClearBtn.tooltiptext "clear transmitter area or (then) list of notifications">
-<!ENTITY quasichatCheckbox.tooltiptext "ignore new messages">
+<!ENTITY quasichatChboxMode.tooltiptext "nothing in background plus stop polling">
 <!ENTITY quasichatLastline.tooltiptext "last line">
 <!ENTITY quasichatBelow.tooltiptext "below">
 <!ENTITY quasichatAbove.tooltiptext "above">
 <!ENTITY quasichatOptLink.label "Open the Node Messenger Page">
 <!ENTITY quasichatTestBtn.label "Test">
-<!ENTITY quasichatTestBtn.tooltiptext "does command exist">
+<!ENTITY quasichatTestBtn.tooltiptext "Use this command to change permissions to file of node script.">
+<!ENTITY quasichatEmptyBtn.label "Empty">
+<!ENTITY quasichatEmptyBtn.tooltiptext "Clear item above.">
 <!ENTITY quasichatDivContent.label "Use Options page of this Add-on then Reload (F5) command.">
 <!ENTITY quasichatRunBtn.tooltiptext "(re) start node (exe)">
 <!ENTITY quasichatCloseBtn.tooltiptext "close one line">

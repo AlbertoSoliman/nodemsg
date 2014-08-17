@@ -5,13 +5,15 @@
 <!ENTITY quasichatSharedPort.setitle "Общий Порт:">
 <!ENTITY quasichatSendBtn.tooltiptext "отправить сообщение и&apos;ли запрос">
 <!ENTITY quasichatClearBtn.tooltiptext "очистить область передатчик или (затем) список уведомлений">
-<!ENTITY quasichatCheckbox.tooltiptext "не принимать новые соощения">
+<!ENTITY quasichatChboxMode.tooltiptext "остановить опрос и только команды пользователя">
 <!ENTITY quasichatLastline.tooltiptext "последняя строчка">
 <!ENTITY quasichatBelow.tooltiptext "приёмник">
 <!ENTITY quasichatAbove.tooltiptext "передатчик">
 <!ENTITY quasichatOptLink.label "Перейти на Рабочую Страницу">
 <!ENTITY quasichatTestBtn.label "Диагностика">
-<!ENTITY quasichatTestBtn.tooltiptext "существует ли команда">
+<!ENTITY quasichatTestBtn.tooltiptext "Используй это команду для изменеия режима доступа файла скрипта.">
+<!ENTITY quasichatEmptyBtn.label "Стереть">
+<!ENTITY quasichatEmptyBtn.tooltiptext "Чтобы пункту выше было пусто.">
 <!ENTITY quasichatDivContent.label "Используй соответствующую страницу Настроек и команду Обновить (F5).">
 <!ENTITY quasichatRunBtn.tooltiptext "перезапустить внешнюю команду">
 <!ENTITY quasichatCloseBtn.tooltiptext "закрыть одну планку">

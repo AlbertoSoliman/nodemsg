@@ -12,7 +12,6 @@ const   PREF_PORT       = "extensions.nodemsg.sharedPort"
 const   PREF_NEW_WIN	= "extensions.nodemsg.openNewWin"
     //nst   PREF_NOTIFY     = "extensions.nodemsg.notify"
 const   SET_OF_PREFS    = [ PREF_NODE_EXE, PREF_ADDRESS, PREF_PORT, PREF_NEW_WIN ]
-const   MULTI_ADDR      = "255.255.255.255" // "192.168.1.255"
 
 const   WINOS_NODEJS    = "C:\\Program Files\\nodejs\\node.exe"
 const	XUL_NAMESPACE	= "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
@@ -185,7 +184,7 @@ var gInlineObserver = {
             thenode.addEventListener("click", this, false);
             thenode = thebody.querySelector("image.text-link");
             thenode.addEventListener("click", this, false);
-            thenode = thebody.querySelector("button");
+            thenode = thebody.querySelector("button.test");
             thenode.addEventListener("command", this, false);
             
             thebody = adoc.documentElement.querySelector("setting.nodemsg[type='integer']");

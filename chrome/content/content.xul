@@ -92,9 +92,11 @@
     <html:textarea wrap="off"></html:textarea>
     <hbox>
         <separator />
-        <checkbox label="ignore" disabled="true" tooltiptext="&quasichatCheckbox.tooltiptext;" />
+        <checkbox label="Lazy Mode" disabled="true" tooltiptext="&quasichatChboxMode.tooltiptext;" />
         <hbox flex="1" pack="center">
-            <button command="cmd_send" />
+            <button style="margin-right: 0" command="cmd_send" />
+            <checkbox label="by double enter. " disabled="true" />
+            <separator />
             <button command="cmd_clear" />
             <separator />
         </hbox>

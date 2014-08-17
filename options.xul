@@ -10,7 +10,7 @@
    <setting class="nodemsg" type="string" 
          pref="extensions.nodemsg.multiAddr"
          title="&quasichatMultiAddr.setitle;" 
-        desc=" or bcast attribute of ifconfig" />
+        desc=" or see a b&apos;cast attribute of the ifconfig" />
 
    <setting class="nodemsg" type="integer" 
          pref="extensions.nodemsg.sharedPort"
@@ -22,7 +22,12 @@
          desc="&quasichatLocalNode.desc;" />
 
    <setting class="nodemsg" type="control" dir="reverse">
-        <button icon="apply" 
+        <button icon="clear" 
+                oncommand="Services.prefs.setCharPref('extensions.nodemsg.localNode', '');"
+                tooltiptext="&quasichatEmptyBtn.tooltiptext;"
+                label="&quasichatEmptyBtn.label;" />
+            <separator style="width: 1em;" />
+        <button icon="apply" class="test"
                 tooltiptext="&quasichatTestBtn.tooltiptext;"
                 label="&quasichatTestBtn.label;" />
             <separator style="width: 1em;" />

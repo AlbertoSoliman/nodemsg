@@ -11,6 +11,54 @@ Components.utils.import("resource://gre/modules/Timer.jsm")
 Components.utils.import("chrome://nodemsg/content/include.jsm")
 
 var cartridge = { //  host { demon, [ content ] }
+
+    filter : function(asbn)
+    {
+        let retval = false;
+        //  if (this.hasOwnProperty(ahost))
+        if (asbn)
+        for each (let entrance in this)
+        if (!(entrance instanceof Function))
+        {
+            let content = entrance.content || [];
+            let thelen = content.length;
+            if (thelen) entrance.content = content.filter( 
+                function(anwin) { return (anwin != asbn) } );
+            if (entrance.content)
+                if (!(entrance.content.length)) 
+                    retval = true;
+        }
+        if (retval) setTimeout( function() { cartridge.clear() }, 1 );
+    },
+
+    filterByWin : function(awindow)
+    {
+        try {
+        let neowin = awindow.QueryInterface(Ci.nsIInterfaceRequestor)
+                        .getInterface(Ci.nsIDOMWindowUtils) || {};
+        this.filter(neowin.currentInnerWindowID);
+        }
+        catch (err) {
+            Components.utils.reportError(err)
+        }
+    },
+    
+//  in: pair [ host, .getInterface(Ci.nsIDOMWindowUtils).currentInnerWindowID ]
+//  out: location or currentInnerWindowID from @in
+    push : function(ahost, asbn)
+    {
+        this.filter(asbn);
+        if ("content" in (this[ ahost ] || {})) 
+        {
+            this[ ahost ].content.push(asbn);
+            return this[ ahost ].location || asbn;
+        }
+        else
+            if (ahost in this) this[ ahost ].content = [ asbn ];
+                else this[ ahost ] = { "content": [ asbn ] };
+        return asbn;
+    },
+
     clear : function()
     {
         let retval = [];
@@ -31,7 +79,24 @@ var cartridge = { //  host { demon, [ content ] }
             }
         }, this);
         
+    },
+
+    isbn2demon : function (awindow)
+    {
+        let retval = { "isRunning": false };
+        let isbn = awindow.QueryInterface(Ci.nsIInterfaceRequestor)
+                    .getInterface(Ci.nsIDOMWindowUtils).currentInnerWindowID;
+        for each (let entrance in this) // if (this.hasOwnProperty(ahost))
+        if (!(entrance instanceof Function))
+        {
+            let content = entrance.content || [];
+            if (content.indexOf)
+            if (content.indexOf(isbn) + 1)
+                return entrance.demon || retval;
+        }
+        return retval;
     }
+
 }
 
 var notify5pref = {
@@ -64,38 +129,6 @@ function bug2storage(atopic, abug)
         "bug"       : JSON.stringify(thebug),
         "timeStamp" : Date.now()
     }
-}
-
-function isbn2demon(awindow)
-{
-    let retval = { "isRunning": false };
-    let isbn = awindow.QueryInterface(Ci.nsIInterfaceRequestor)
-                .getInterface(Ci.nsIDOMWindowUtils).currentInnerWindowID;
-    for each (let entrance in cartridge) // if (this.hasOwnProperty(ahost))
-    if (!(entrance instanceof Function))
-    {
-        let content = entrance.content || [];
-        if (content.indexOf(isbn) + 1)
-            return entrance.demon || retval;
-    }
-    return retval;
-}
-
-function filterByIsbn(awindow)
-{
-    let retval = false;
-    let isbn = awindow.QueryInterface(Ci.nsIInterfaceRequestor)
-                .getInterface(Ci.nsIDOMWindowUtils).currentInnerWindowID;
-    for each (let entrance in cartridge)
-    if (!(entrance instanceof Function))
-    {
-        let content = entrance.content || [];
-        let thelen = content.length;
-        entrance.content = content.filter( 
-            function(anwin) { return (anwin != this) }, isbn );
-        if (entrance.content.length < thelen) retval = true;
-    }
-    return retval;
 }
 
 function OnceObserve(ahost)
@@ -238,8 +271,7 @@ var NodeMonitor = {
     {
         if (anevt.type != "command")
         {
-            if (filterByIsbn(anevt.currentTarget))
-                setTimeout( function() { cartridge.clear() }, 0 );
+            cartridge.filterByWin(anevt.currentTarget);
             return; // "pagehide", "unload"
         }
 
@@ -253,9 +285,8 @@ var NodeMonitor = {
         let therun = anevt.currentTarget.classList.contains("run");
         let theform = thedoc.querySelector("form");
         var thehost = [ theform.addr.value, theform.port.value ];
-        let thebug = null, thelaunch = null;
+        let thebug = null, thelaunch = cartridge.isbn2demon(thewin) || {};
         try {
-            thelaunch = (isbn2demon(thewin) || {});
             if (therun)
             {
                 if (thelaunch.isRunning) thelaunch.kill();
@@ -329,15 +360,9 @@ var NodeMonitor = {
             retval.salute = this.salute;
             retval.isbn = awindow.QueryInterface(Ci.nsIInterfaceRequestor)
                             .getInterface(Ci.nsIDOMWindowUtils).currentInnerWindowID;
-            if (thehost in cartridge)
-            {
-                cartridge[ thehost ].content.push(retval.isbn);
-                retval.isbn = cartridge[ thehost ].location || retval.isbn;
-            }
-            else {
-                cartridge[ thehost ] = { "content": [retval.isbn] };
-                this.clearStorage(thehost);
-            }
+//                cartridge[ thehost ].content.push(retval.isbn);
+            if (!(thehost in cartridge)) this.clearStorage(thehost);
+            retval.isbn = cartridge.push(thehost, retval.isbn);
         }
         catch (err) {
             thebug = err;
