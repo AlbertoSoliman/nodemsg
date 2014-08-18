@@ -10,10 +10,11 @@ const chromeSkin    = "chrome://global/skin/icons"
 const REGEX_TRIM    = /(^\s+)|(\s+$)/g
 const LOCAL_HOST = '127.0.0.1', PREFIX = ">", INTERVAL = 111; // x 2 for updateView
     //nst XPATH_ACK_STAMP = "hbox.ack .timeStamp"
+const ERROR_ALREADY_CONNECTED = parseInt(19);
+const ERROR_UNEXPECTED = parseInt(-1);
 const FATAL_BUG = [ "storage-or-component-of-page-is-unready",
                    "You can use Reload (F5) command, as least action." ];
 const INFORM_BUG = [ "informal-packet", "See detail in Web Console via Developer Menu." ];
-const ACK_BUG = [ "acknowledgement", "Reply is not got." ];
       
 Components.utils.import("resource://gre/modules/Services.jsm")
 Components.utils.import("chrome://nodemsg/content/include.jsm")
@@ -186,9 +187,9 @@ var rendezvous = {
             if (this.counter) --this.counter;
         }
         else {
-            nodemsg.notify( { "topic": INFORM_BUG[0], "msg" : INFORM_BUG[1] } );
-            window.console.log(ADDON_ISBN, "length: ", themsg.length, " informal-packet:");
-            window.console.log(themsg);
+            nodemsg.notify( { "topic": INFORM_BUG[0], "msg" : INFORM_BUG[1], "exitValue": 1 } );
+            window.console.warn(ADDON_ISBN, "length: ", themsg.length, " informal-packet:");
+            window.console.warn(themsg);
         }
         return (themsg.length);
     },
@@ -356,11 +357,15 @@ var nodemsg = {
             "timeStamp": theobj.timeStamp || Date.now(),
             "msg" :     theobj.msg
         };
-
+//    window.console.log(Components.results.NS_ERROR_ALREADY_CONNECTED, " ", (thecfg.exitValue | 0x80000000));
         if (theobj.bug) thecfg.msg = theobj.bug;
         else if (!(thecfg.msg))
+        if (thecfg.exitValue == ERROR_ALREADY_CONNECTED)
+        {
+            thecfg.msg = [ "Nodejs server already exists, port: ", " ." ].join(rendezvous.port);
+        }
+        else
             thecfg.msg = [ "exitValue( ", " )" ].join(thecfg.exitValue);
-
         return thecfg;
     },
 
@@ -443,7 +448,7 @@ var nodemsg = {
 
     notify : function(acfg)
     {
-//  acfg.topic: "process-failed", "process-finished", "acknowledgement"
+//  acfg.topic: "process-failed", "process-finished", 
 //      "process-run", "process-init"; "component-init"
         function isEqualNotification(anode, alast)
         {
@@ -454,16 +459,16 @@ var nodemsg = {
                 return thestr.length;
             return 0;
         }
-        
+
         let icon  = "warning-16.png";
         let label = [ acfg.topic, acfg.msg ].join(', ');
-        let value = acfg.exitValue || parseInt(1);
+        let value = acfg.exitValue;
         switch (acfg.topic) {
-            case "acknowledgement" : 
-            case "process-finished": value = parseInt(0);
+            case "process-failed"  : value = value || ERROR_UNEXPECTED;
             case "informal-packet" : 
-            case "process-failed"  : break;
+            case "process-finished": break;
             default : icon = "error-16.png";
+            value = value || ERROR_UNEXPECTED;
         }
 
         let thebox = document.querySelector("vbox.notificationbox");

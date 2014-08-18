@@ -1,22 +1,24 @@
 #!/usr/bin/env node
 
-//    "name": "commander", "version": "2.2.0"
 const DESCRIPTION = "The Node Messenger via udp:\n\t- listens to a given port\n\t" +
     "- relays a local (127.0.0.1) data to a given (multi-) address\n\t" +
     "- flushes a remote data to a local browser as reply,\n" +
     " last operation is reliable, i.e. is not repeated.\n";
 
 const PREFIX    = "  ";     // double space
-const HOST      = '127.0.0.1';  //  "192.168.1.33";
+const LOCAL_HOST = '127.0.0.1';  //  "192.168.1.33";
 const ENCODING  = 'utf8';   // buffer to String
 const MAX_LEN   = 1024;      // limit to len of one datagram
+const ERROR_ALREADY_CONNECTED = parseInt(19);
+const ERROR_UNEXPECTED = parseInt(-1);
 
 var PORT    = parseInt(8181),
     ADDRESS = "255.255.255.255", //   "192.168.1.255", 
-    TTL     = 11;
+    TTL     = 11,
+    randomstr = "i am nodemsg"; //  TODO: randomize string.
 //  TODO: Some var's to limit of memory usage.
 
-var cmdops = require('./commander');
+var cmdops = require('./commander'); //    "name": "commander", "version": "2.2.0"
  cmdops.version('0.0.1').description(DESCRIPTION)
     .usage('[--port (-p) nnn] [--addr (-a) *.255] // length of one msg < 500')
     .option('-p, --port [n]', 'union nodes should share the same port', PORT, parseInt)
@@ -50,6 +52,7 @@ var GARBAGE = { '127.0.0.1': [] }; // one host for one msg, more is over
 //  TODO: clearing sub system.
 
 var dgram   = require('dgram');
+var client  = dgram.createSocket('udp4');
 var server  = dgram.createSocket('udp4');
 var task    = { 
     timeStamp : Date.now(),
@@ -62,14 +65,14 @@ var task    = {
         if (theobj) 
         {
             if (amd5)   //  return if already exists
-                if (GARBAGE[HOST].indexOf(amd5) + 1) 
+                if (GARBAGE[LOCAL_HOST].indexOf(amd5) + 1) 
                     return true;
 
             this.tickTack = null, clearInterval(theobj);
             server.send( this._msg, 0, this._msg.length, PORT, ADDRESS );
         }
         else
-        if (GARBAGE[HOST].length >> 3)
+        if (GARBAGE[LOCAL_HOST].length >> 3)
         {
 //  TODO: clearing sub system, by setTimeout(callback, 
         }
@@ -89,7 +92,7 @@ var task    = {
     {
         if (this.reset(amd5)) return;
         this.timeStamp = Date.now();
-        GARBAGE[HOST].push(amd5);
+        GARBAGE[LOCAL_HOST].push(amd5);
         this._msg = new Buffer(amsg);
         this.tickTack = setInterval( 
             function() { task.relay(Date.now());
@@ -102,18 +105,16 @@ server.on('listening', function () {
     var address = server.address();
     server.setBroadcast(true); // ?
     console.log('UDP Server listening on ' + address.address + ":" + address.port);
+    client = null;
 });
-/*
-server.on('close', function () {
-    console.log('UDP Server is closed.');
-}); */
+
 server.on('message', function (message, remote) 
 {
     var address = remote.address || "";
     var themsg = [ address, remote.port ].join(':');
 
     var thestr = message.toString(ENCODING, 0, MAX_LEN).trim();
-    if (address == HOST) // relay
+    if (address == LOCAL_HOST) // relay
     {
     var timeStamp = parseInt(Date.now() / 1000) * 1000;
         var theobj = { "type": "gab" };
@@ -126,8 +127,7 @@ server.on('message', function (message, remote)
         }
         catch(err)
         {
-            console.log("JSON.parse: ", thestr);
-            console.log(err);    //  TODO: comment.
+//  console.log("JSON.parse: ", thestr); console.log(err);
         }
 
         if (thestr.length && (theobj.type == "gab"))
@@ -136,47 +136,42 @@ server.on('message', function (message, remote)
             thestr = [ timeStamp, thestr ].join(PREFIX);
             task.charge( str2djb(thestr), thestr );
         }
+//        else console.log(remote.port, " bot msg: ", thestr);
 
-        var themsg = null, theaddr = null,
-            thevec = Object.keys(CACHE);
-        if (thevec.length) 
+        var thevec = Object.keys(CACHE);
+        var themsg = "", theaddr = thevec[0] || null;
+        if (theaddr) // foreign sender
         {
-            theaddr = thevec[0];
-            themsg = CACHE[theaddr];
-        }
-
-        if (theaddr)
-        if (themsg.length)
-        if (themsg.length >> 1)
-        {
-            themsg = themsg.map( function(astr) {
-                return astr.replace( /(^\d+)|(\s+$)/g , "" ).trim();
-            } );
-    //  TODO: restore one original timeStamp.
-            themsg = [ timeStamp, themsg.join("\n") ].join(PREFIX);
-        }
-            else themsg = (themsg[0] || "").trim();
-        else themsg  = null; // if (themsg.length)
-
-        if (theaddr)
-        {
-            if (themsg)
+            themsg = CACHE[theaddr] || [];
+            if ((parseInt(themsg.length || 0)) >> 1)
             {
-                themsg = new Buffer([ theaddr, themsg ].join(":"));
-                server.send( themsg, 0, themsg.length, remote.port, address );
+                themsg = themsg.map( function(astr) {
+                    return astr.replace( /(^\d+)|(\s+$)/g , "" ).trim();
+                } );
+        //  TODO: restore one original timeStamp.
+                themsg = [ timeStamp, themsg.join("\n") ].join(PREFIX);
             }
+                else themsg = (themsg[0] || "").trim();
             delete CACHE[theaddr];
+        }
+
+        if (themsg.length && theaddr)
+        {
+//            if (themsg)
+            themsg = new Buffer([ theaddr, themsg ].join(":"));
+            server.send( themsg, 0, themsg.length, remote.port, address );
         }
         else
         if (thestr.length >> 1) // echo, original is 127.0.0.1
         {
 //    console.log("echo: ", thestr);
-            thestr = new Buffer([ HOST, thestr ].join(":"));
-            server.send( thestr, 0, thestr.length, remote.port, address );
+            var packet = new Buffer([ LOCAL_HOST, thestr ].join(":"));
+//            setTimeout( function() {
+            server.send( packet, 0, packet.length, remote.port, LOCAL_HOST );
         }
 //  TODO: activate clearing .  else
         return;
-    }   //  if (address == HOST) // relay
+    }   //  if (address == LOCAL_HOST) // relay
 
     console.log([ themsg, message.length ].join(' - '));
     
@@ -185,7 +180,7 @@ server.on('message', function (message, remote)
     {
         themd5 = str2djb(thestr);
         // (task.md5.indexOf(themd5) + 1) return;
-        var thepos = GARBAGE[HOST].indexOf(themd5);
+        var thepos = GARBAGE[LOCAL_HOST].indexOf(themd5);
 //    console.log('_dvk_dbg_, Host msg: ', thepos);
         if (!(thepos + 1))
         if (address in GARBAGE) //  if already found
@@ -205,17 +200,44 @@ server.on('message', function (message, remote)
     return;
 }); //  server.on('message' ...
 
-process.on('exit', function(code) { 
-    console.log('About to exit with code: ', code);
-});
-
 // Listen for error events on the socket. When we get an error, we
 // want to be sure to CLOSE the socket; otherwise, it's possible that
 // we won't be able to get it back without restarting the process.
 server.on('error', function ( error ) { 
         server.close();
-        console.log('About to exit with code: ', error); 
+        console.error(error);
+        process.exit(error.errno || error.code || ERROR_UNEXPECTED);
     }
 );
 
-server.bind(PORT);   //, HOST);
+client.on('close', function () { server.bind(PORT) });
+client.on('message', function (message, remote) 
+{
+    var thestr = message.toString(ENCODING, 0, MAX_LEN).trim();
+        randomstr = [ LOCAL_HOST, randomstr ].join(':');
+	if (thestr.indexOf(randomstr) + 1)
+	{
+        console.warn("Nodejs server already exists, port: ", PORT);
+		process.exit(ERROR_ALREADY_CONNECTED);
+	}
+}	); // server.on('message', function (message, remote) 
+
+setTimeout( function() {
+    var themsg = new Buffer([ '{ "type": "bot", "msg": "', '"}'].join(randomstr));
+    client.send( themsg, 0, themsg.length, PORT, LOCAL_HOST, function(err, bytes) 
+    {
+        if (err)
+        {
+            console.error(err);
+            process.exit(error.errno || error.code || ERROR_UNEXPECTED);
+        }
+        else // to cruise
+            setTimeout( function() { client.close() }, 7 );
+    });
+}, 0 );
+
+process.on('exit', function(code) { 
+    console.log('About to exit with code: ', code);
+});
+
+//  server.bind(PORT);   //, LOCAL_HOST);
