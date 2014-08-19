@@ -150,9 +150,9 @@ var rendezvous = {
             if (!(this.poll()))
             if ((++this.counter) >> 3)
             {
-                if (nodemsg.running) window.setTimeout( 
-                        function() { rendezvous.doCmd("bot") }, 
-                            (INTERVAL >> 1) );
+                if (!(nodemsg.mode) && nodemsg.running) //  prolongation of pooling
+                    window.setTimeout( function() 
+                        { rendezvous.doCmd("bot") }, (INTERVAL >> 1) );
                 timeStamp = 0;
             }
         }
@@ -238,7 +238,7 @@ var nodemsg = {
     host    : null,
     timeStamp: Date.now(), // notify subsystem (observer)
     counter : 0,
-
+    mode    : false, // lazy (economic) mode
     load : function()
     {
         let theobj = null;
@@ -345,6 +345,7 @@ var nodemsg = {
             let newvalue = (nodemsg.running || thestr.length) ? "false" : "true";
             document.getElementById("cmd_send").setAttribute("disabled", newvalue);
   //        (document.querySelector(".transmitter > textbox[flex]") || {}).value = "";
+            document.getElementById("cmd_mode").setAttribute("checked", (nodemsg.mode) ? "true" : "false");
         }
         }, (INTERVAL * 2), this.counter);
     },
@@ -373,6 +374,7 @@ var nodemsg = {
     {    
         if (!(atopic == "nsPref:changed")) 
         {
+            if (!(this.mode))
             if (this.running) 
             {
                 if (!(rendezvous.running))
@@ -416,7 +418,6 @@ var nodemsg = {
 
     handleEvent : function(anevt)
     {
-        rendezvous.reset();
         let thebug = null;
         let target = anevt.target || {};
         if (anevt.currentTarget === window) // "unload"
@@ -425,25 +426,32 @@ var nodemsg = {
             {
                 Services.prefs.removeObserver(PREF_NOTIFY, this);
                 Services.obs.removeObserver( this, "user-interaction-inactive" );
-            }
+            }   //  rendezvous.reset();
         }
         else // if (anevt.type == "command")
-            if (target.classList.contains("run")) this.running = false;
-            else if (target.classList.contains("clear")) cmdClear(target);
-            else 
-            try {
+        try {
+            if (!((target.className || "").contains("clear"))) rendezvous.reset();
+            switch (target.className) 
+            {
+            case "run"  : this.running = false; // revival by observer
+                break;
+            case "clear": cmdClear(target);
+                break;
+            case "mode" : this.mode = !(this.mode);
+                break;
+            default : // send btn
                 let thenode = document.querySelector("textbox.send");
                 let thestr = (thenode.value || "").replace(REGEX_TRIM, "");
                 if (thestr.length || this.running)
                 if (str2djb(thestr) != rendezvous.hash) // "raw" ?
                     rendezvous.doCmd((this.running) ? "gab" : "raw", thestr);
             }
-            catch (err) {
-                thebug = err;
-                Components.utils.reportError(err);
-            }
-//    window.console.log("_dvk_dbg_, send command ", anevt.target);
-        if (thebug) reportBug(thebug, "udp-read");
+        }
+        catch (err) {   thebug = err;
+            Components.utils.reportError(err);
+        }
+//        window.console.log("_dvk_dbg_, command: ", target.className);
+        if (thebug) reportBug(thebug, "udp-read"); // i.e. handleEvent
     },
 
     notify : function(acfg)

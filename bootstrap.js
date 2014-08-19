@@ -308,13 +308,14 @@ var gInlineObserver = {
             }
         }
 
+            if (!thecmd && isWinOS()) thecmd = "node.exe";
         {
-            awin.console.log(ADDON_ISBN, "script permissions: ", thefile.permissions);
-            awin.console.log(ADDON_ISBN, "external cmd:");
-            awin.console.log(thecmd, " ", ascript);
+            awin.console.info(ADDON_ISBN, "script permissions: ", thefile.permissions);
+            awin.console.info(ADDON_ISBN, "external cmd:");
+            awin.console.info(thecmd, " ", ascript);
         }
 
-            let theline = ["-V"];
+            let theline = ["--once"];
             if (thecmd)
             {
                 commonerr = "Node is not found - ".concat(thecmd);
@@ -323,7 +324,7 @@ var gInlineObserver = {
                 //row new Components.Exception(commonerr, Components.results.NS_ERROR_FILE_TARGET_DOES_NOT_EXIST );
                 if (!(thefile.isFile())) throw( Components.results.NS_ERROR_FILE_IS_DIRECTORY );
 //                  throw new Components.Exception(commonerr, Components.results.NS_ERROR_FILE_IS_DIRECTORY );                
-                theline = [ascript, "-V"];
+                theline = [ascript, "--once"];
             }
 
             awin.addEventListener("unload", this, false);

@@ -294,11 +294,11 @@ var NodeMonitor = {
                 this.updateItem(thehost.join(":"), thelaunch);
                 this.runNodeMainjs( thewin, thedoc, thehost );
             }
-            else    //  TODO: comment.
+/*            else   
             {
                 thewin.console.log("_dvk_dbg_, test send cmd of component:");
                     thewin.console.log(thelaunch);
-            }
+            }   */
         }
         catch (err) {
             Components.utils.reportError(err);

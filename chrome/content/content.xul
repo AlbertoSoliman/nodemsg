@@ -28,12 +28,18 @@
 </html:style>
 
 <commandset oncommand="happening(event);">
-    <command id="cmd_send" label="SEND" accesskey="s" disabled="true"
-                tooltiptext="&quasichatSendBtn.tooltiptext;" />
-    <command id="cmd_clear" label="CLEAR" accesskey="c" class="clear" icon="clear" 
-                tooltiptext="&quasichatClearBtn.tooltiptext;" />
-    <command id="cmd_run" label="RUN" accesskey="r" class="run" 
-                tooltiptext="&quasichatRunBtn.tooltiptext;" />
+    <command id="cmd_send" disabled="true" 
+             label="SEND" accesskey="s" 
+             tooltiptext="&quasichatSendBtn.tooltiptext;" />
+    <command id="cmd_clear" class="clear" 
+             label="CLEAR" accesskey="c" 
+             tooltiptext="&quasichatClearBtn.tooltiptext;" />
+    <command id="cmd_run" class="run" 
+             label="RUN" accesskey="r" 
+             tooltiptext="&quasichatRunBtn.tooltiptext;" />
+    <command id="cmd_mode" class="mode" 
+             checked="false" autocheck="false"
+             tooltiptext="&quasichatChboxMode.tooltiptext;" />
 </commandset>
 
 <menupopup id="main-menu">
@@ -41,6 +47,8 @@
     <menuitem command="cmd_clear" />
     <menuitem command="cmd_run" />
     <menuseparator />
+    <menuitem command="cmd_mode" type="checkbox" 
+              label="MODE" accesskey="M" />
 </menupopup>
     
 <vbox>
@@ -92,15 +100,15 @@
     <html:textarea wrap="off"></html:textarea>
     <hbox>
         <separator />
-        <checkbox label="Lazy Mode" disabled="true" tooltiptext="&quasichatChboxMode.tooltiptext;" />
+        <checkbox command="cmd_mode" label="Economic Mode" accesskey="M" />
         <hbox flex="1" pack="center">
             <button style="margin-right: 0" command="cmd_send" />
             <checkbox label="by double enter. " disabled="true" />
             <separator />
-            <button command="cmd_clear" />
+            <button command="cmd_clear" icon="clear" />
             <separator />
         </hbox>
-        <button command="cmd_run" />
+        <button command="cmd_run" icon="open" />
     </hbox>
 
     <textbox class="send" rows="6" autofocus="true" multiline="true" flex="1"

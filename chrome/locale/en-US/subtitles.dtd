@@ -5,7 +5,7 @@
 <!ENTITY quasichatSharedPort.setitle "Shared Port:">
 <!ENTITY quasichatSendBtn.tooltiptext "send and/or poll messages">
 <!ENTITY quasichatClearBtn.tooltiptext "clear transmitter area or (then) list of notifications">
-<!ENTITY quasichatChboxMode.tooltiptext "nothing in background plus stop polling">
+<!ENTITY quasichatChboxMode.tooltiptext "no operation&apos;s in background plus stop polling">
 <!ENTITY quasichatLastline.tooltiptext "last line">
 <!ENTITY quasichatBelow.tooltiptext "below">
 <!ENTITY quasichatAbove.tooltiptext "above">

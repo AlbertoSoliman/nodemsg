@@ -21,18 +21,18 @@ var PORT    = parseInt(8181),
 var cmdops = require('./commander'); //    "name": "commander", "version": "2.2.0"
  cmdops.version('0.0.1').description(DESCRIPTION)
     .usage('[--port (-p) nnn] [--addr (-a) *.255] // length of one msg < 500')
+    .option('-o, --once [once]', 'one diagnostic round', false)
     .option('-p, --port [n]', 'union nodes should share the same port', PORT, parseInt)
     .option('-a, --addr [*.255]', 'multi-address default '.concat(ADDRESS), ADDRESS)
     .option('-t, --ttl [sec]', 'time to live of repeater, in sec, less than 60.')
     .parse(process.argv);
-//  TODO: time to live of relayed message (per sec).
 
  PORT = Math.abs(parseInt(cmdops.port) || PORT);
 //  if (!(PORT >> 5)) PORT = parseInt(8080);
  ADDRESS = (cmdops.addr || "").trim() || ADDRESS;
  TTL = Math.abs(parseInt(cmdops.ttl) || parseInt(TTL));
     if (TTL > 60) TTL = parseInt(60); // one minute
-//  TODO: diagnostic sub system.
+
  console.info( "configuration - ".concat([ ADDRESS, PORT ].join(" : ")) );
  console.info( [ "\ttime to live of repeater: ", " sec" ].join(TTL) );
     TTL *= 1000; // to milliseconds
@@ -175,7 +175,7 @@ server.on('message', function (message, remote)
 
     console.log([ themsg, message.length ].join(' - '));
     
-    var themd5 = null; // TODO: test prefix of msg.
+    var themd5 = null;
     if ((thestr.indexOf(PREFIX) + 1) >> 1)
     {
         themd5 = str2djb(thestr);
@@ -231,8 +231,13 @@ setTimeout( function() {
             console.error(err);
             process.exit(error.errno || error.code || ERROR_UNEXPECTED);
         }
-        else // to cruise
-            setTimeout( function() { client.close() }, 7 );
+        else    // to cruise
+        {
+            setTimeout( function() {
+                if (cmdops.once) server.close(); else client.close();
+            }, 7 );
+            if (cmdops.once) client.close();
+        }
     });
 }, 0 );
 
