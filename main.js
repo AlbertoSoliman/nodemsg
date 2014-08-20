@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 const DESCRIPTION = "The Node Messenger via udp:\n\t- listens to a given port\n\t" +
     "- relays a local (127.0.0.1) data to a given (multi-) address\n\t" +
     "- flushes a remote data to a local browser as reply,\n" +
@@ -11,6 +9,7 @@ const ENCODING  = 'utf8';   // buffer to String
 const MAX_LEN   = 1024;      // limit to len of one datagram
 const ERROR_ALREADY_CONNECTED = parseInt(19);
 const ERROR_UNEXPECTED = parseInt(-1);
+const errno2code = { 'EACCESS': 3 };
 
 var PORT    = parseInt(8181),
     ADDRESS = "255.255.255.255", //   "192.168.1.255", 
@@ -93,6 +92,7 @@ var task    = {
         if (this.reset(amd5)) return;
         this.timeStamp = Date.now();
         GARBAGE[LOCAL_HOST].push(amd5);
+        amsg = amsg.concat("\n").replace( /\n+/g, "\n" );
         this._msg = new Buffer(amsg);
         this.tickTack = setInterval( 
             function() { task.relay(Date.now());
@@ -200,13 +200,23 @@ server.on('message', function (message, remote)
     return;
 }); //  server.on('message' ...
 
+function getExitCode(newval)
+{
+    var theval = parseInt(0);
+    if (newval.length)
+        if (newval in errno2code)
+            theval = parseInt(errno2code[newval]);
+    if (!theval) theval = parseInt(newval);
+    return (theval || ERROR_UNEXPECTED);
+}
+
 // Listen for error events on the socket. When we get an error, we
 // want to be sure to CLOSE the socket; otherwise, it's possible that
 // we won't be able to get it back without restarting the process.
 server.on('error', function ( error ) { 
         server.close();
         console.error(error);
-        process.exit(error.errno || error.code || ERROR_UNEXPECTED);
+        process.exit(getExitCode(error.errno || error.code));
     }
 );
 
@@ -229,7 +239,7 @@ setTimeout( function() {
         if (err)
         {
             console.error(err);
-            process.exit(error.errno || error.code || ERROR_UNEXPECTED);
+            process.exit(getExitCode(error.errno || error.code));
         }
         else    // to cruise
         {

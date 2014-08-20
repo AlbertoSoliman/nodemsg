@@ -2,6 +2,7 @@
 
 Components.utils.import("resource://gre/modules/Services.jsm")
 
+const INTERFACE_PROCESS = Components.interfaces.nsIProcess;
 const ABOUT_CONTENT = "chrome://nodemsg/content/content.xul"
 const ADDON_ISBN    = "nodemsg@code.google.com"
 const PREF_NOTIFY   = "extensions.nodemsg.notify"
@@ -19,4 +20,5 @@ function isWinOS()
 
 var EXPORTED_SYMBOLS = [ "isWinOS", "AddonManager",
         "ABOUT_CONTENT", "MULTI_ADDR", "ADDON_ISBN", 
-        "PREF_NOTIFY", "NODE_SCRIPT"   ]
+        "PREF_NOTIFY", "NODE_SCRIPT",
+        "INTERFACE_PROCESS" ]

@@ -235,9 +235,8 @@ var NodeMonitor = {
 
         let thecmd = Services.prefs.getCharPref(PREF_NODE_EXE) || "";
         //t commonerr = "Script does not exist - ".concat(this.resource);
-        let thelaunch = Components.classes["@mozilla.org/process/util;1"].createInstance(Ci.nsIProcess);
-/*            awin.console.log(ADDON_ISBN, ", nsIProcess: ", thelaunch);
-            awin.console.log(this.resource);    */
+        let thelaunch = Components.classes["@mozilla.org/process/util;1"].createInstance(INTERFACE_PROCESS);
+//            awin.console.log(ADDON_ISBN, ", Process: ", thelaunch);
         let thefile = Components.classes["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
             thefile.initWithPath(this.resource);
         if (!(thefile.exists())) throw(Components.results.NS_ERROR_FILE_TARGET_DOES_NOT_EXIST);
@@ -249,7 +248,7 @@ var NodeMonitor = {
             awin.console.log(thecmd, " ", this.resource);
         }
 
-        if (!thecmd && isWinOS()) thecmd = "node.exe"; // shebang of main.js
+        if (!thecmd) thecmd = (isWinOS()) ? "node.exe" : "node"; // since shebang is flagged
         cartridge[ ahost.join(":") ].location = thenode.value = ( thecmd || "/usr/bin/env node" );
         let theline =  ["-a", ahost[0], "-p", ahost[1] ];
         if (thecmd)

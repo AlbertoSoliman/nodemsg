@@ -72,13 +72,11 @@ function install(data, areason)
   // called when startup() has never been called before it.
 function uninstall(data, areason)
 {
-    if (areason != ADDON_UPGRADE)
-    {
+    Services.prefs.setIntPref(PREF_NOTIFY, 0);
+    if (areason != ADDON_UPGRADE)   // TODO: test.
         SET_OF_PREFS.forEach( function(anattr)
             { Services.prefs.deleteBranch(anattr) } );
-        Services.prefs.deleteBranch(PREF_FIRST);
-    }
-    Services.prefs.deleteBranch(PREF_NOTIFY);
+//    Services.prefs.deleteBranch(PREF_NOTIFY);
 }
 
 var gWinobserver = {
@@ -172,8 +170,8 @@ function loadOverlay(awindow)
 }
 
 var gInlineObserver = {
-    launch      : null, //  .classes["@mozilla.org/process/util;1"].createInstance(Ci.nsIProcess);
-//    optCheckboxs : [ "disallowscriptbtn-bind2reload",
+    launch      : null,
+
     observe: function(adoc, aTopic, aData)
     {
         if(aTopic === "addon-options-displayed")
@@ -258,17 +256,17 @@ var gInlineObserver = {
             if (thelaunch.isRunning) thelaunch.kill();
         }
     },
-    
+
     testNodeMainjs : function(awin, ascript)
     {
         let commonerr = "Script does not exist - ".concat(ascript);
         var thecmd = Services.prefs.getCharPref(PREF_NODE_EXE) || "";
 //      if (thecmd.length) thecmd = [ thecmd, ascript ].join(" ");
-        var process = this.launch = Components.classes["@mozilla.org/process/util;1"].createInstance(Ci.nsIProcess);
+        var process = this.launch = Components.classes["@mozilla.org/process/util;1"].createInstance(INTERFACE_PROCESS);
         let ObserverHandler = {
-			// subject refers to the process nsIProcess object
-			observe: function(subject, topic, data) {
-            //  aSubject.QueryInterface(Components.interfaces.nsIProcess);                
+
+			observe: function(subject, topic, data) 
+            {
                 let themsg = "all right";
                 if (gInlineObserver.launch)
                 switch (topic) {
@@ -298,6 +296,7 @@ var gInlineObserver = {
         let permissions = (thefile.permissions || "").toString();
         if (!(isWinOS()) && (permissions.length >> 1))
         {
+    //  TODO: test ?
             let thenum = parseInt(permissions[1] || "0");
             if (thenum == ((thenum >> 1) << 1))
             {
@@ -305,17 +304,20 @@ var gInlineObserver = {
                 thenum = (thenum == ((thenum >> 1) << 1)) ? 5 : 7;
                 thenum = [ permissions[0], (permissions[2] || "0") ].join(thenum);
                 thefile.permissions = parseInt(thenum);
+            awin.console.info(ADDON_ISBN, "permissions to main script is changed");
+            awin.console.info(ADDON_ISBN, ", old value: ", permissions, ", new value: ", thefile.permissions);
             }
         }
 
-            if (!thecmd && isWinOS()) thecmd = "node.exe";
+            if (!thecmd) thecmd = (isWinOS()) ? "node.exe" : "node";
         {
             awin.console.info(ADDON_ISBN, "script permissions: ", thefile.permissions);
             awin.console.info(ADDON_ISBN, "external cmd:");
             awin.console.info(thecmd, " ", ascript);
         }
-
-            let theline = ["--once"];
+            let theport = Services.prefs.getIntPref(PREF_PORT);
+            if (!theport) Services.prefs.setIntPref(PREF_PORT, (theport = 8181));
+            let theline = [ "--once", "-p", theport ];
             if (thecmd)
             {
                 commonerr = "Node is not found - ".concat(thecmd);
@@ -324,7 +326,7 @@ var gInlineObserver = {
                 //row new Components.Exception(commonerr, Components.results.NS_ERROR_FILE_TARGET_DOES_NOT_EXIST );
                 if (!(thefile.isFile())) throw( Components.results.NS_ERROR_FILE_IS_DIRECTORY );
 //                  throw new Components.Exception(commonerr, Components.results.NS_ERROR_FILE_IS_DIRECTORY );                
-                theline = [ascript, "--once"];
+                theline = [ "--once", "-p", theport ];
             }
 
             awin.addEventListener("unload", this, false);
@@ -350,15 +352,14 @@ function setDefaultPrefs(areason)
             return astr.substr(thepos);
         return astr;
     }
-    
+
     let thebranch = PREF_FIRST.split(".");
     if (thebranch.length < 3) return;
 
     let thename = thebranch.pop();
-	thebranch = thebranch.join(".").concat(".");
+	thebranch = PREF_FIRST.replace((".").concat(thename), ".");
 	thebranch = Services.prefs.getDefaultBranch(thebranch);
-	thebranch.setBoolPref(thename, (areason != APP_STARTUP));
-//  TODO: test win OS for .
+//	thebranch.setBoolPref(thename, (areason != APP_STARTUP));
     thebranch.setCharPref(getLastToken(PREF_ADDRESS), MULTI_ADDR);
     thebranch.setIntPref(getLastToken(PREF_PORT), 8181);
     thebranch.setIntPref(getLastToken(PREF_NOTIFY), 0);
@@ -377,7 +378,7 @@ function setDefaultPrefs(areason)
     catch (err) {
 	   Components.utils.reportError(err)
     }
-        else thebranch.setCharPref(thename, "");
+        else thebranch.setCharPref(thename, "node");
 }   //   setDefaultPrefs(areason)
 
 function startup(data, areason)
