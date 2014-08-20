@@ -72,11 +72,11 @@ function install(data, areason)
   // called when startup() has never been called before it.
 function uninstall(data, areason)
 {
-    Services.prefs.setIntPref(PREF_NOTIFY, 0);
+//    Services.prefs.setIntPref(PREF_NOTIFY, 0);
     if (areason != ADDON_UPGRADE)   // TODO: test.
         SET_OF_PREFS.forEach( function(anattr)
             { Services.prefs.deleteBranch(anattr) } );
-//    Services.prefs.deleteBranch(PREF_NOTIFY);
+    Services.prefs.deleteBranch(PREF_NOTIFY);
 }
 
 var gWinobserver = {
@@ -292,11 +292,10 @@ var gInlineObserver = {
             thefile.initWithPath(ascript);
         if (!(thefile.exists())) throw( Components.results.NS_ERROR_FILE_TARGET_DOES_NOT_EXIST );
         if (!(thefile.isFile())) throw( Components.results.NS_ERROR_FILE_IS_DIRECTORY );
-
+/*      permission subsystem needs with shebang of main.js
         let permissions = (thefile.permissions || "").toString();
         if (!(isWinOS()) && (permissions.length >> 1))
         {
-    //  TODO: test ?
             let thenum = parseInt(permissions[1] || "0");
             if (thenum == ((thenum >> 1) << 1))
             {
@@ -307,8 +306,7 @@ var gInlineObserver = {
             awin.console.info(ADDON_ISBN, "permissions to main script is changed");
             awin.console.info(ADDON_ISBN, ", old value: ", permissions, ", new value: ", thefile.permissions);
             }
-        }
-
+        }   */
             if (!thecmd) thecmd = (isWinOS()) ? "node.exe" : "node";
         {
             awin.console.info(ADDON_ISBN, "script permissions: ", thefile.permissions);
@@ -472,6 +470,7 @@ function shutdown(data, areason)
 
     Services.obs.removeObserver(gInlineObserver, "addon-options-displayed");
         gInlineObserver.handleEvent({}); // type = "unload" || "pagehide"
-    if(areason == ADDON_UNINSTALL) uninstall(data, areason);
+//    if(areason == ADDON_UNINSTALL) uninstall(data, areason);
+    if(areason != APP_SHUTDOWN) uninstall(data, areason);
     //  dump("shutdown, ");    dump("reason:\t");    dump(areason); dump("\n");
 }

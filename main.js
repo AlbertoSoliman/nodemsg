@@ -9,7 +9,7 @@ const ENCODING  = 'utf8';   // buffer to String
 const MAX_LEN   = 1024;      // limit to len of one datagram
 const ERROR_ALREADY_CONNECTED = parseInt(19);
 const ERROR_UNEXPECTED = parseInt(-1);
-const errno2code = { 'EACCESS': 3 };
+const errno2code = { 'EACCES': 3 };
 
 var PORT    = parseInt(8181),
     ADDRESS = "255.255.255.255", //   "192.168.1.255", 
@@ -173,7 +173,7 @@ server.on('message', function (message, remote)
         return;
     }   //  if (address == LOCAL_HOST) // relay
 
-    console.log([ themsg, message.length ].join(' - '));
+//    console.log([ themsg, message.length ].join(' - '));
     
     var themd5 = null;
     if ((thestr.indexOf(PREFIX) + 1) >> 1)

@@ -11,7 +11,7 @@
 <!ENTITY quasichatAbove.tooltiptext "above">
 <!ENTITY quasichatOptLink.label "Open the Node Messenger Page">
 <!ENTITY quasichatTestBtn.label "Test">
-<!ENTITY quasichatTestBtn.tooltiptext "Take an advantage of this command to change the permissions to the node script.">
+<!ENTITY quasichatTestBtn.tooltiptext "Test of the external command, does it exist and etc.">
 <!ENTITY quasichatEmptyBtn.label "Empty">
 <!ENTITY quasichatEmptyBtn.tooltiptext "Clear item above.">
 <!ENTITY quasichatDivContent.label "Use Options page of this Add-on then Reload (F5) command.">

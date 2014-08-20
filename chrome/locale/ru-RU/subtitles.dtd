@@ -11,7 +11,7 @@
 <!ENTITY quasichatAbove.tooltiptext "передатчик">
 <!ENTITY quasichatOptLink.label "Перейти на Рабочую Страницу">
 <!ENTITY quasichatTestBtn.label "Диагностика">
-<!ENTITY quasichatTestBtn.tooltiptext "Воспользуйтесь это команду для изменеия режима доступа файла скрипта.">
+<!ENTITY quasichatTestBtn.tooltiptext "Проверить существование внешней команды.">
 <!ENTITY quasichatEmptyBtn.label "Стереть">
 <!ENTITY quasichatEmptyBtn.tooltiptext "Чтобы пункту выше было пусто.">
 <!ENTITY quasichatDivContent.label "Используй соответствующую страницу Настроек и команду Обновить (F5).">
