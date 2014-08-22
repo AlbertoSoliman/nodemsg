@@ -213,15 +213,15 @@ var NodeMonitor = {
     
     killNodejs : function()
     {
-        try {
+        try {   //  dump("\n_dvk_dbg_, killNodejs\n");
             for each (let entrance in cartridge)
             if (!(entrance instanceof Function))
                 if (entrance.demon)
                     entrance.content = [];
             cartridge.clear();
         }
-        catch(err) {    // TODO: comment.
-            Components.utils.reportError(err);
+        catch(err) {
+//            Components.utils.reportError(err);
         }
     },
 

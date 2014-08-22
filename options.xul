@@ -24,12 +24,14 @@
    <setting class="nodemsg" type="control" dir="reverse">
         <button icon="clear" 
                 oncommand="Services.prefs.setCharPref('extensions.nodemsg.localNode', '');"
-                tooltiptext="&quasichatEmptyBtn.tooltiptext;"
-                label="&#8657;&#32;&quasichatEmptyBtn.label;" />
+                label="&#8657;&#32;&quasichatEmptyBtn.label;" 
+                accesskey="&quasichatEmptyBtn.accesskey;" 
+                tooltiptext="&quasichatEmptyBtn.tooltiptext;" />
             <separator style="width: 1em;" />
         <button icon="apply" class="test"
-                tooltiptext="&quasichatTestBtn.tooltiptext;"
-                label="&quasichatTestBtn.label;" />
+                label="&quasichatTestBtn.label;"
+                accesskey="&quasichatTestBtn.accesskey;" 
+                tooltiptext="&quasichatTestBtn.tooltiptext;" />
             <separator style="width: 1em;" />
         <label class="text-link" value="&quasichatOptLink.label;" />
         <image class="text-link" src="chrome://nodemsg/skin/toggle.png" />

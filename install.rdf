@@ -2,7 +2,7 @@
 <RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#">
   <Description about="urn:mozilla:install-manifest">
       <em:id>nodemsg@code.google.com</em:id>
-      <em:version>0.1.0</em:version>
+      <em:version>0.1.1</em:version>
 
 		<em:localized>
 		  <Description>
@@ -10,7 +10,7 @@
 			<em:name>Node Messenger</em:name>
 <em:description>Обмен широковещательными сообщениями в одноранговой сети (UDP), требует Node.js (exe).</em:description>
 			<em:creator>&lt;kannoner@gmail.com&gt;</em:creator>
-			<em:homepageURL>http://code.google.com/u/kannoner/</em:homepageURL>
+			<em:homepageURL>http://code.google.com/p/nodemsg/</em:homepageURL>
 		  </Description>
 		</em:localized>
 

@@ -8,7 +8,7 @@
         title="Node Messenger" >
 
 <html:link rel="icon" href="chrome://nodemsg/skin/toggle.png" style="display:none" />
-    
+
 <html:style type="text/css" xmlns="http://www.w3.org/1999/xhtml">
     form { margin: 1ex }
     input[type="number"] { width: 5em }
@@ -24,14 +24,17 @@
     notification:only-child:hover > button { visibility: collapse; }
     form > label { margin-left: 1em }
     separator { width: 1em }
+    textarea[persist] { 
+        min-height: 4em;
+        border-bottom-right-radius: 3em 3em; 
+    }
     notification > span { display: inline; float: right; }
 </html:style>
 
 <commandset oncommand="happening(event);">
     <command id="cmd_send" disabled="true" 
-             label="SEND" accesskey="s" 
-             tooltiptext="&quasichatSendBtn.tooltiptext;" />
-    <command id="cmd_clear" class="clear" 
+             label="SEND" accesskey="s" />
+    <command id="cmd_clear" class="clear" disabled="true" 
              label="CLEAR" accesskey="c" 
              tooltiptext="&quasichatClearBtn.tooltiptext;" />
     <command id="cmd_run" class="run" 
@@ -43,12 +46,11 @@
 </commandset>
 
 <menupopup id="main-menu">
-    <menuitem command="cmd_send" />
-    <menuitem command="cmd_clear" />
-    <menuitem command="cmd_run" />
+    <menuitem command="cmd_send" tooltiptext="&quasichatSendMenu.tooltiptext;" />
+    <menuitem command="cmd_clear" tooltiptext="&quasichatClearBtn.tooltiptext;" />
+    <menuitem command="cmd_run" tooltiptext="&quasichatRunBtn.tooltiptext;" />
     <menuseparator />
-    <menuitem command="cmd_mode" type="checkbox" 
-              label="MODE" accesskey="M" />
+    <menuitem command="cmd_mode" type="checkbox" label="MODE" accesskey="M" />
 </menupopup>
     
 <vbox>
@@ -96,23 +98,28 @@
     <textbox class="timeStamp" readonly="true" multiline="false" 
              tooltiptext="&quasichatTimeStamp.tooltiptext;" />
     </hbox>
-    
-    <html:textarea wrap="off"></html:textarea>
+
+    <html:textarea id="textarea" persist="style" wrap="off"></html:textarea>
+
     <hbox>
         <separator />
         <checkbox command="cmd_mode" label="Economic Mode" accesskey="M" />
         <hbox flex="1" pack="center">
-            <button style="margin-right: 0" command="cmd_send" />
-            <checkbox label="by double enter. " disabled="true" />
+            <button command="cmd_send" style="margin-right: 0" 
+                    tooltiptext="&quasichatSendBtn.tooltiptext;" />
+            <checkbox id="checkbox_return" label="by double enter. " accesskey="d" persist="checked" />
             <separator />
             <button command="cmd_clear" icon="clear" />
             <separator />
         </hbox>
         <button command="cmd_run" icon="open" />
+        <separator />
+        <separator />
     </hbox>
 
     <textbox class="send" rows="6" autofocus="true" multiline="true" flex="1"
-             oninput="nodemsg.updateView();" />
+             onkeypress="nodemsg.lastKeyCode = (event.charCode || event.keyCode);"
+             onblur= "nodemsg.lastKeyCode = 0;" oninput="updateView();" />
 
     <hbox align="center" class="transmitter">
     <description class="header" value="transmitter:" 

@@ -3,7 +3,8 @@
 <!ENTITY quasichatLocalNode.desc    "требуется Node.js (http://nodejs.org/)">
 <!ENTITY quasichatMultiAddr.setitle "Широковещательный Адрес:">
 <!ENTITY quasichatSharedPort.setitle "Общий Порт:">
-<!ENTITY quasichatSendBtn.tooltiptext "отправить сообщение и&apos;ли запрос">
+<!ENTITY quasichatSendBtn.tooltiptext "отправить текст ниже">
+<!ENTITY quasichatSendMenu.tooltiptext "отправить сообщение и&apos;ли запрос">
 <!ENTITY quasichatClearBtn.tooltiptext "очистить область передатчик или (затем) список уведомлений">
 <!ENTITY quasichatChboxMode.tooltiptext "остановить опрос и только команды пользователя">
 <!ENTITY quasichatLastline.tooltiptext "последняя строчка">
@@ -11,8 +12,10 @@
 <!ENTITY quasichatAbove.tooltiptext "передатчик">
 <!ENTITY quasichatOptLink.label "Перейти на Рабочую Страницу">
 <!ENTITY quasichatTestBtn.label "Диагностика">
+<!ENTITY quasichatTestBtn.accesskey "Д">
 <!ENTITY quasichatTestBtn.tooltiptext "Проверить существование внешней команды.">
 <!ENTITY quasichatEmptyBtn.label "Стереть">
+<!ENTITY quasichatEmptyBtn.accesskey "С">
 <!ENTITY quasichatEmptyBtn.tooltiptext "Чтобы пункту выше было пусто.">
 <!ENTITY quasichatDivContent.label "Используй соответствующую страницу Настроек и команду Обновить (F5).">
 <!ENTITY quasichatRunBtn.tooltiptext "перезапустить внешнюю команду">

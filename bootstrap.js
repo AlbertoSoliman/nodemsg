@@ -80,12 +80,13 @@ function uninstall(data, areason)
 }
 
 var gWinobserver = {
+
     handleEvent : function(anevt)
     {
         let mainwin = anevt.currentTarget;
 //	if (anevt.type == "DOMContentLoaded")
         let thedoc = anevt.target.documentElement;
-        if (thedoc)  //  top document plus documentElement
+//        if (thedoc)  //  top document plus documentElement
         if (anevt.target === anevt.currentTarget.document)
         try {
             if (thedoc.getAttribute("windowtype") == MAIN_WINTYPE)
@@ -104,15 +105,37 @@ var gWinobserver = {
     //  aSubject - the window being opened or closed,
     //  sent as an nsISupports which can be nsISupports.QueryInterface()
     //      (QueryInterfaced) to an nsIDOMWindow.
+        let thedoc = null;
         if (atopic === "domwindowopened")
             asubject.addEventListener("DOMContentLoaded", this, false);
-        else {
-            dump("_dvk_dbg_, observe:\t"); dump(atopic);
-            dump("\n"); //  TODO:   "domwindowclosed", clearing sub system.
-        }
-    //lse Components.utils.reportError(["Unexpected topic for observer", atopic ].join(": "));
-    //  asynchronous loading plus check type of window
-    }    
+        else    // "domwindowclosed", clearing sub system.
+            thedoc = (asubject.document || {}).documentElement;
+
+        if (thedoc)
+        if (thedoc.getAttribute("windowtype") == MAIN_WINTYPE)
+            setTimeout( function() { 
+                let content, nodemsg = false;
+                let thebrowsers = Services.wm.getEnumerator(MAIN_WINTYPE);
+                while ((!nodemsg) && thebrowsers.hasMoreElements())
+                {
+                    let thewin = thebrowsers.getNext() || { 'gBrowser': '' };
+                    if (content = thewin.gBrowser.browsers)
+                    for (let i = 0; i < content.length; i++) 
+                    {
+                        let thedoc = content[i] || { 'currentURI': '' };
+                        let thestr = (thedoc.currentURI.spec || "").toLowerCase();
+                        if (thestr.startsWith(AboutSitename.classDescription))
+                        {
+                            nodemsg = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!nodemsg) NodeMonitor.killNodejs();
+
+            }, 0 );
+    }   //  observe: function(asubject, atopic, data)
 } // gWinobserver
 
 function loadOverlay(awindow)
@@ -265,14 +288,14 @@ var gInlineObserver = {
         var process = this.launch = Components.classes["@mozilla.org/process/util;1"].createInstance(INTERFACE_PROCESS);
         let ObserverHandler = {
 
-			observe: function(subject, topic, data) 
+			observe: function(subject, topic, data)
             {
                 let themsg = "all right";
                 if (gInlineObserver.launch)
                 switch (topic) {
                     case "process-failed": 
                         themsg = [ (thecmd || ascript), process.exitValue ];
-                        themsg = themsg.join(", exit value: ");
+                        themsg = themsg.join(" - exit value: ");
                     case "process-finished": break;
                     default : return;
                 }
@@ -280,11 +303,17 @@ var gInlineObserver = {
 
                 awin.removeEventListener("unload", gInlineObserver, false);
                 awin.removeEventListener("pagehide", gInlineObserver, false);
-                awin.console.log( topic, "exitValue: ", process.exitValue );
+                switch (process.exitValue) {
+                    case 3 : themsg = "Access to a net or a port is not allowed.";
+                        break;
+                    case 8 : themsg = "Access to file is denied.";
+                        break;
+                }
+                awin.console.info(ADDON_ISBN, topic, "exitValue: ", process.exitValue );
                 if (process.exitValue) topic = "process-failed";
                 Services.prompt.alert( awin, topic, themsg );
                 return; // observe of launch.runwAsync
-			}            
+			}    //  observe: function(subject, topic, data)
         }
 
         try {
@@ -308,30 +337,23 @@ var gInlineObserver = {
             }
         }   */
             if (!thecmd) thecmd = (isWinOS()) ? "node.exe" : "node";
-        {
             awin.console.info(ADDON_ISBN, "script permissions: ", thefile.permissions);
             awin.console.info(ADDON_ISBN, "external cmd:");
             awin.console.info(thecmd, " ", ascript);
-        }
+            
+            commonerr = "Node is not found - ".concat(thecmd);
+            thefile.initWithPath(thecmd);
+            if (!(thefile.exists())) throw( Components.results.NS_ERROR_FILE_TARGET_DOES_NOT_EXIST );
+            //row new Components.Exception(commonerr, Components.results.NS_ERROR_FILE_TARGET_DOES_NOT_EXIST );
+            if (!(thefile.isFile())) throw( Components.results.NS_ERROR_FILE_IS_DIRECTORY );
+//                  throw new Components.Exception(commonerr, Components.results.NS_ERROR_FILE_IS_DIRECTORY );                
             let theport = Services.prefs.getIntPref(PREF_PORT);
             if (!theport) Services.prefs.setIntPref(PREF_PORT, (theport = 8181));
-            let theline = [ "--once", "-p", theport ];
-            if (thecmd)
-            {
-                commonerr = "Node is not found - ".concat(thecmd);
-                thefile.initWithPath(thecmd);
-                if (!(thefile.exists())) throw( Components.results.NS_ERROR_FILE_TARGET_DOES_NOT_EXIST );
-                //row new Components.Exception(commonerr, Components.results.NS_ERROR_FILE_TARGET_DOES_NOT_EXIST );
-                if (!(thefile.isFile())) throw( Components.results.NS_ERROR_FILE_IS_DIRECTORY );
-//                  throw new Components.Exception(commonerr, Components.results.NS_ERROR_FILE_IS_DIRECTORY );                
-                theline = [ "--once", "-p", theport ];
-            }
-
             awin.addEventListener("unload", this, false);
             awin.addEventListener("pagehide", this, false);
             this.launch.init(thefile);
+            let theline = [ ascript, "--once", "-p", theport ];
             this.launch.runwAsync( theline, theline.length, ObserverHandler );
-
         }
         catch (err) {
             Components.utils.reportError(err);
@@ -470,7 +492,7 @@ function shutdown(data, areason)
 
     Services.obs.removeObserver(gInlineObserver, "addon-options-displayed");
         gInlineObserver.handleEvent({}); // type = "unload" || "pagehide"
-//    if(areason == ADDON_UNINSTALL) uninstall(data, areason);
-    if(areason != APP_SHUTDOWN) uninstall(data, areason);
+    if (areason == ADDON_UNINSTALL) uninstall(data, areason);
+//    if(areason != APP_SHUTDOWN) uninstall(data, areason);
     //  dump("shutdown, ");    dump("reason:\t");    dump(areason); dump("\n");
 }

@@ -10,7 +10,9 @@ const chromeSkin    = "chrome://global/skin/icons"
 const REGEX_TRIM    = /(^\s+)|(\s+$)/g
 const LOCAL_HOST = '127.0.0.1', PREFIX = ">", INTERVAL = 111; // x 2 for updateView
     //nst XPATH_ACK_STAMP = "hbox.ack .timeStamp"
-const ERROR_ALREADY_CONNECTED = parseInt(19);
+const PORT_ACCESS_NOT_ALLOWED   = parseInt(3);
+const FILE_ACCESS_DENIED        = parseInt(8);
+const ERROR_ALREADY_CONNECTED   = parseInt(19);
 const ERROR_UNEXPECTED = parseInt(-1);
 const FATAL_BUG = [ "storage-or-component-of-page-is-unready",
                    "You can use Reload (F5) command, as least action." ];
@@ -35,6 +37,7 @@ function setClrAck(avalue)
 {
     let thenode = document.querySelector("deck");
     if (avalue) thenode.appendChild(thenode.firstElementChild);
+    else (document.querySelector("textbox.ack") || {}).value = "";
     thenode.firstElementChild.value = avalue || ""; //  placeholder
 }
 
@@ -61,7 +64,7 @@ function reportBug(abug, atopic)
 
 function insetrMsg(amsg, aprefix)
 {
-        aprefix = (aprefix || "").concat(PREFIX);;
+        aprefix = (aprefix || "").concat(PREFIX);
     let thenode = document.querySelector("textarea");
     let thestr  = (thenode.value || "").replace(REGEX_TRIM, "");
     let themsg = [ aprefix, amsg ].join(" ");
@@ -239,10 +242,14 @@ var nodemsg = {
     timeStamp: Date.now(), // notify subsystem (observer)
     counter : 0,
     mode    : false, // lazy (economic) mode
+    focusedbtn : null,
+    lastKeyCode: 0, //  event.keyCode
+
     load : function()
     {
         let theobj = null;
         if (this.storage.getItem) theobj = this.storage.getItem(this.host);
+
         if (this._isbn && this.storage.getItem)
         {
             document.querySelector("commandset")
@@ -250,7 +257,7 @@ var nodemsg = {
             theobj = JSON.parse(theobj) || {};
             if (theobj.isRunning)
             {
-                window.setTimeout( function() { nodemsg.updateView() }, 0 );
+                window.setTimeout( function() { updateView() }, 0 );
                 this.running = theobj.isRunning;
                 document.querySelector("textbox.ack").value = this._isbn;
             }
@@ -259,21 +266,25 @@ var nodemsg = {
             let thenode = thebox.firstElementChild;
             for (let i = 0; i < 4; ++i)
                  thebox.appendChild(thenode.cloneNode(false));
-    
-            return;
+        }
+        else //  below something wrong
+        {
+            if (theobj) theobj = this.storage2cfg( JSON.parse(theobj) );                
+                this.notify(theobj);
+            document.getElementById("cmd_run").setAttribute("disabled", "true");
+            theobj = { "topic": FATAL_BUG[0], "msg" : FATAL_BUG[1] };
+                this.notify( theobj );
         }
 
-        //  below something wrong
-        if (theobj) 
+        let thelist = document.querySelectorAll( "hbox > button" );
+        for (let i = 0; i < thelist.length; ++i)
         {
-            theobj = this.storage2cfg( JSON.parse(theobj) );
-                this.notify(theobj);
-        };
-        document.getElementById("cmd_run").setAttribute("disabled", "true");
-        theobj = { "topic": FATAL_BUG[0], "msg" : FATAL_BUG[1] };
-            this.notify( theobj );
-        return;
-    },
+            thelist[i].addEventListener("blur", 
+                function(anevt) { nodemsg.focusedbtn = null }, true);
+            thelist[i].addEventListener("focus", function(anevt) 
+                { nodemsg.focusedbtn = anevt.currentTarget }, false);
+        }
+    },  //  load : function()
 
     initialize : function()
     {
@@ -326,28 +337,38 @@ var nodemsg = {
         this._running = newvalue.startsWith("true");
     },
 
-    updateView : function()
+    innerUpdateView : function()
     {
-        ++this.counter;
-        window.setTimeout( function(alevel) {
-        if (alevel == nodemsg.counter)
+        function updateBtn(asbn, anewval)
         {
-            let thenode = document.querySelector("textbox.ack") || {};
-            if (!(nodemsg.running)) 
-            {
-                thenode.value = "";
-                setClrAck();
-            }
-            thenode.readOnly = nodemsg.running;
-//          if (!(rendezvous.running)) rendezvous.hash = 0;
-            let thestr = document.querySelector("textbox.send").value;
-                thestr = (thestr || "").replace(REGEX_TRIM, "");
-            let newvalue = (nodemsg.running || thestr.length) ? "false" : "true";
-            document.getElementById("cmd_send").setAttribute("disabled", newvalue);
-  //        (document.querySelector(".transmitter > textbox[flex]") || {}).value = "";
-            document.getElementById("cmd_mode").setAttribute("checked", (nodemsg.mode) ? "true" : "false");
+            const btn2next = { "cmd_send": "textbox.send", "cmd_clear": "hbox > button:only-of-type" };
+            let thebtn = document.querySelector([ "button[command='", "']" ].join(asbn)) || {};
+            document.getElementById(asbn).setAttribute("disabled", (anewval) ? "false" : "true");
+            if (!anewval && (thebtn === nodemsg.focusedbtn))
+                window.setTimeout( function(anode) { anode.focus() }, 0, 
+                                    document.querySelector(btn2next[asbn]) );
         }
-        }, (INTERVAL * 2), this.counter);
+
+        if (!(this.running)) setClrAck();
+        (document.querySelector("textbox.ack") || {}).readOnly = this.running;
+//          if (!(rendezvous.running)) rendezvous.hash = 0;
+        document.getElementById("cmd_mode").setAttribute("checked", (this.mode) ? "true" : "false");
+        let thestr = document.querySelector("textbox.send").value || "";
+        let newvalue = (this.running || (thestr.replace(REGEX_TRIM, "").length));
+        if (this.lastKeyCode && newvalue)
+        {
+            let thenode = document.getElementById("checkbox_return") || {};
+            if (this.lastKeyCode == KeyEvent.DOM_VK_RETURN)
+                if (thenode.checked && thestr.match(/\n\s?\n\s?$/))
+                    window.setTimeout( function(anode) { anode.doCommand() }, 0, 
+                                            document.getElementById("cmd_send") );
+        }
+            updateBtn("cmd_send", newvalue), nodemsg.lastKeyCode = 0;
+
+        let thenode = document.querySelector("vbox.notificationbox") || {};
+        newvalue = parseInt(thenode.childElementCount || 0);
+        thestr = (document.querySelector("textbox.send") || {}).value || "";
+            updateBtn("cmd_clear", ((thestr.length) || (newvalue >> 1)));
     },
 
     storage2cfg : function(theobj)
@@ -361,12 +382,18 @@ var nodemsg = {
 //    window.console.log(Components.results.NS_ERROR_ALREADY_CONNECTED, " ", (thecfg.exitValue | 0x80000000));
         if (theobj.bug) thecfg.msg = theobj.bug;
         else if (!(thecfg.msg))
-        if (thecfg.exitValue == ERROR_ALREADY_CONNECTED)
-        {
-            thecfg.msg = [ "Nodejs server already exists, port: ", " ." ].join(rendezvous.port);
-        }
-        else
-            thecfg.msg = [ "exitValue( ", " )" ].join(thecfg.exitValue);
+            switch (thecfg.exitValue) {
+            case PORT_ACCESS_NOT_ALLOWED :
+                thecfg.msg = "Access to a net or a port is not allowed.";
+                break;
+            case FILE_ACCESS_DENIED :
+                thecfg.msg = "Access to file is denied, see web console.";
+                break;
+            case ERROR_ALREADY_CONNECTED :
+                thecfg.msg = [ "Nodejs server already exists, port: ", " ." ].join(rendezvous.port);
+                break;
+            default : thecfg.msg = [ "exitValue( ", " )" ].join(thecfg.exitValue);
+            }            
         return thecfg;
     },
 
@@ -375,16 +402,16 @@ var nodemsg = {
         if (!(atopic == "nsPref:changed")) 
         {
             if (!(this.mode))
-            if (this.running) 
-            {
-                if (!(rendezvous.running))
+                if (this.running) 
                 {
-                    rendezvous.doCmd("bot");
+                    if (!(rendezvous.running))
+                    {
+                        rendezvous.doCmd("bot");
                     window.console.log(ADDON_ISBN, "start polling by idle");
+                    }
                 }
-            }
-            else
-                document.getElementById("cmd_run").doCommand();
+                else
+                    document.getElementById("cmd_run").doCommand();
             return; // .addObserver( this, "user-interaction-inactive", false );
         }
 
@@ -403,7 +430,7 @@ var nodemsg = {
 //  avoid topic is not used notify subsystem
         if (this.timeStamp < value)
         {
-            this.timeStamp = value, this.updateView();
+            this.timeStamp = value, updateView();
             if (topic.contains("component-init")) return;
             if (this.running) return; // if cruise or internal error
             if ((oldvalue != this.running) || (theobj.class || "").contains("run"))
@@ -422,11 +449,11 @@ var nodemsg = {
         let target = anevt.target || {};
         if (anevt.currentTarget === window) // "unload"
         {
-            if (this._isbn) 
+            if (this._isbn)
             {
                 Services.prefs.removeObserver(PREF_NOTIFY, this);
                 Services.obs.removeObserver( this, "user-interaction-inactive" );
-            }   //  rendezvous.reset();
+            }   //  rendezvous.reset();            
         }
         else // if (anevt.type == "command")
         try {
@@ -467,6 +494,7 @@ var nodemsg = {
                 return thestr.length;
             return 0;
         }
+        if (!acfg) return; // guard
 
         let icon  = "warning-16.png";
         let label = [ acfg.topic, acfg.msg ].join(', ');
@@ -505,7 +533,9 @@ var nodemsg = {
             thebox.replaceChild(thenode, thelast);
         }
             else thebox.appendChild(thenode);
-    }
+
+        return;
+    }   //  notify : function(acfg)
 }
 
 function notificationClick(abox)
@@ -515,17 +545,33 @@ function notificationClick(abox)
         thenode.nextElementSibling.focus();
 }
 
+function updateView()
+{
+    ++nodemsg.counter;
+    window.setTimeout( function(alevel) {
+        if (nodemsg.counter == alevel) nodemsg.innerUpdateView();
+    }, (INTERVAL * 2), nodemsg.counter );
+}
+
 function happening(anevt)
 {
-    nodemsg.updateView();   //  anevt.target is cmd dom node
+       //  anevt.target is cmd dom node
+    if (anevt.target.hasAttribute("checked")) 
+    {
+        if (rendezvous.running) updateView();
+        return;
+    }
+    //  else // usual command
+    updateView();
     document.querySelector(".transmitter > .timeStamp").value = "";
+    return;
 }
 
 function cmdClear(acmd)
 {
     let textarea = document.querySelector("textbox.send");
-    let thestr = (textarea.value || "").trim();
-    if (!(thestr.length))
+    if ((textarea.value || "").length) textarea.value = "";
+    else
     try {
         let thebox = document.querySelector("vbox.notificationbox");
         let thenode = thebox.lastElementChild;
@@ -539,7 +585,6 @@ function cmdClear(acmd)
     catch (err) {
         Components.utils.reportError(err)
     }
-    textarea.value = "";
 }
 
 window.addEventListener( "unload", nodemsg, false );

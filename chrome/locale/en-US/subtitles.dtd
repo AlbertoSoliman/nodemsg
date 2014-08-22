@@ -3,7 +3,8 @@
 <!ENTITY quasichatLocalNode.desc    "Node.js (exe) is required (http://nodejs.org/)">
 <!ENTITY quasichatMultiAddr.setitle "Broadcast Address:">
 <!ENTITY quasichatSharedPort.setitle "Shared Port:">
-<!ENTITY quasichatSendBtn.tooltiptext "send and/or poll messages">
+<!ENTITY quasichatSendBtn.tooltiptext "send text below">
+<!ENTITY quasichatSendMenu.tooltiptext "send and/or poll messages">
 <!ENTITY quasichatClearBtn.tooltiptext "clear transmitter area or (then) list of notifications">
 <!ENTITY quasichatChboxMode.tooltiptext "no operation&apos;s in background plus stop polling">
 <!ENTITY quasichatLastline.tooltiptext "last line">
@@ -11,10 +12,12 @@
 <!ENTITY quasichatAbove.tooltiptext "above">
 <!ENTITY quasichatOptLink.label "Open the Node Messenger Page">
 <!ENTITY quasichatTestBtn.label "Test">
+<!ENTITY quasichatTestBtn.accesskey "T">
 <!ENTITY quasichatTestBtn.tooltiptext "Test of the external command, does it exist and etc.">
 <!ENTITY quasichatEmptyBtn.label "Empty">
+<!ENTITY quasichatEmptyBtn.accesskey "E">
 <!ENTITY quasichatEmptyBtn.tooltiptext "Clear item above.">
-<!ENTITY quasichatDivContent.label "Use Options page of this Add-on then Reload (F5) command.">
+<!ENTITY quasichatDivContent.label "Use Preferences page of this Add-on then Reload (F5).">
 <!ENTITY quasichatRunBtn.tooltiptext "(re) start node (exe)">
 <!ENTITY quasichatCloseBtn.tooltiptext "close one line">
 <!ENTITY quasichatExCmd.tooltiptext "external command">
