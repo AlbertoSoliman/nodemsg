@@ -8,6 +8,7 @@ const API_STORAGE   = Components.interfaces.nsIDOMStorage
 const classDescription = "about:nodemsg"
 const chromeSkin    = "chrome://global/skin/icons"
 const REGEX_TRIM    = /(^\s+)|(\s+$)/g
+const RAW_FORMAT    = "  " //   in main.js PREFIX    = "  ";     // double space
 const LOCAL_HOST = '127.0.0.1', PREFIX = ">", INTERVAL = 111; // x 2 for updateView
     //nst XPATH_ACK_STAMP = "hbox.ack .timeStamp"
 const PORT_ACCESS_NOT_ALLOWED   = parseInt(3);
@@ -74,6 +75,7 @@ function insetrMsg(amsg, aprefix)
 var rendezvous = {
     OPEN_BLOCKING : parseInt(1),
     salute  : ADDON_ISBN,
+    addr    : "255.255.255.255",
     port    : 8181,
     _isbn   : null, //  setInterval( function() { job.ticker() }, INTERVAL );
 //    output  : {}, //    last letter
@@ -98,13 +100,14 @@ var rendezvous = {
             if (amsg) ablank.msg = amsg || "";
             break;
         default: atype = null; // "raw" 
-            ablank.msg = encodeURIComponent(amsg);
+            ablank.msg = [ Date.now(), encodeURIComponent(amsg) ].join(RAW_FORMAT);
         }
 
         let unitSocket = Components.classes["@mozilla.org/network/socket-transport-service;1"]
                     .getService(Components.interfaces.nsISocketTransportService);
-        let socketTransport = unitSocket.createTransport(["udp"], 1, LOCAL_HOST, this.port, null);
-
+        let socketTransport = unitSocket.createTransport( ["udp"], 1, 
+                                            (atype) ? LOCAL_HOST : this.addr, 
+                                                            this.port, null);
         let inputStream = socketTransport.openInputStream(0, 0, 0);
         let scriptible = Components.classes["@mozilla.org/scriptableinputstream;1"]
                             .createInstance(API_INPUT_STR);
@@ -125,8 +128,7 @@ var rendezvous = {
             throw err;
         }
 //    window.console.log("_dvk_dbg_, msg is send, available: ", thelen);
-            thelen = (ablank.msg || "").length;
-        this.hash = parseInt(0);
+        this.hash = parseInt(0), thelen = (ablank.msg || "").length;
         if ((thelen >> 1) && (ablank.type == "gab"))
         {            
             thelen = str2djb(ablank.msg);
@@ -141,8 +143,7 @@ var rendezvous = {
         }
 
         this._isbn = window.setInterval( function() { rendezvous.ticker() }, INTERVAL );
-        this.socket = scriptible;
-        this.timeStamp = Date.now();
+        this.socket = scriptible, this.timeStamp = Date.now();
     },  //  rendezvous.doCmd
 
     ticker : function() // setInterval
@@ -160,18 +161,17 @@ var rendezvous = {
             }
         }
         catch (err) {
-            thebug = err;
-            Components.utils.reportError(err);
+            Components.utils.reportError(thebug = err)
         }
 
         let span = Math.abs(this.timeStamp - timeStamp);
         if (thebug || (span > (INTERVAL * 2))) // overstress
         {
             window.setTimeout( function() { rendezvous.reset() }, 0 );
+            if (nodemsg.running)
             if (thebug) reportBug(thebug, "udp-write");
-                else if (timeStamp) 
-                    window.console.log( ADDON_ISBN, 
-                        "overstress-stop-polling, delay:", span );
+                else if (timeStamp) window.console.log( ADDON_ISBN, 
+                            "overstress-stop-polling, delay:", span );
         }
     }, //  ticker : function() // setInterval
 
@@ -241,9 +241,9 @@ var nodemsg = {
     host    : null,
     timeStamp: Date.now(), // notify subsystem (observer)
     counter : 0,
-    mode    : false, // lazy (economic) mode
-    focusedbtn : null,
-    lastKeyCode: 0, //  event.keyCode
+    mode    : false,    // lazy (economic) mode
+    focusedbtn : null,  // btn and notification box
+    lastKeyCode: 0,     //  event.keyCode
 
     load : function()
     {
@@ -252,7 +252,7 @@ var nodemsg = {
 
         if (this._isbn && this.storage.getItem)
         {
-            document.querySelector("commandset")
+            document.querySelector("commandset.main")
                     .addEventListener( "command", this, false );
             theobj = JSON.parse(theobj) || {};
             if (theobj.isRunning)
@@ -274,15 +274,6 @@ var nodemsg = {
             document.getElementById("cmd_run").setAttribute("disabled", "true");
             theobj = { "topic": FATAL_BUG[0], "msg" : FATAL_BUG[1] };
                 this.notify( theobj );
-        }
-
-        let thelist = document.querySelectorAll( "hbox > button" );
-        for (let i = 0; i < thelist.length; ++i)
-        {
-            thelist[i].addEventListener("blur", 
-                function(anevt) { nodemsg.focusedbtn = null }, true);
-            thelist[i].addEventListener("focus", function(anevt) 
-                { nodemsg.focusedbtn = anevt.currentTarget }, false);
         }
     },  //  load : function()
 
@@ -306,11 +297,11 @@ var nodemsg = {
         try {   //  second: component.
             let bootstrap = Components.classesByID[PC_MANAGER_CID].getService(API_INIT_WIN);
             let theobj = bootstrap.init(window);
-            rendezvous.port = parseInt(theobj.port) || rendezvous.port;
+            form.port.value = rendezvous.port = parseInt(theobj.port) || rendezvous.port;
+            form.addr.value = rendezvous.addr = theobj.addr || rendezvous.addr;
             rendezvous.salute = theobj.salute || rendezvous.salute;
             document.querySelector("notification").label = rendezvous.salute;
-            form.addr.value = theobj.addr, form.port.value = rendezvous.port;
-            this.host = [ theobj.addr, rendezvous.port ].join(":");
+            this.host = [ rendezvous.addr, rendezvous.port ].join(":");
             window.console.log("process-init ", theobj);
             if ("isbn" in theobj) 
             {
@@ -344,9 +335,10 @@ var nodemsg = {
             const btn2next = { "cmd_send": "textbox.send", "cmd_clear": "hbox > button:only-of-type" };
             let thebtn = document.querySelector([ "button[command='", "']" ].join(asbn)) || {};
             document.getElementById(asbn).setAttribute("disabled", (anewval) ? "false" : "true");
-            if (!anewval && (thebtn === nodemsg.focusedbtn))
-                window.setTimeout( function(anode) { anode.focus() }, 0, 
-                                    document.querySelector(btn2next[asbn]) );
+            if (!anewval) 
+                if (thebtn === document.querySelector("button:focus"))
+                    window.setTimeout( function(anode) { anode.focus() }, 0, 
+                                        document.querySelector(btn2next[asbn]) );
         }
 
         if (!(this.running)) setClrAck();
@@ -521,7 +513,8 @@ var nodemsg = {
             label = (new Date(value)).toLocaleTimeString();
             timestamp.setAttribute( "value", label );
         }
-
+//        thenode.addEventListener( "focus", function(anevt) 
+  //          { nodemsg.focusedbtn = anevt.currentTarget }, false );
         let thelast = thebox.lastElementChild;
         if (isEqualNotification(thenode, thelast))
         {
@@ -537,14 +530,10 @@ var nodemsg = {
         return;
     }   //  notify : function(acfg)
 }
-
-function notificationClick(abox)
-{
+/*  function notificationClick(abox)
     let thenode = document.getAnonymousElementByAttribute(abox, "anonid", "details");
     if ((thenode || {}).nextElementSibling)
-        thenode.nextElementSibling.focus();
-}
-
+        thenode.nextElementSibling.focus(); */
 function updateView()
 {
     ++nodemsg.counter;
@@ -555,6 +544,7 @@ function updateView()
 
 function happening(anevt)
 {
+    nodemsg.focusedbtn = null;
        //  anevt.target is cmd dom node
     if (anevt.target.hasAttribute("checked")) 
     {
@@ -565,6 +555,32 @@ function happening(anevt)
     updateView();
     document.querySelector(".transmitter > .timeStamp").value = "";
     return;
+}
+
+function hideLine()
+{
+    if (nodemsg.focusedbtn) nodemsg.focusedbtn.close(); 
+    nodemsg.focusedbtn = null;
+}
+
+function copyLine()
+{
+    let thenode = nodemsg.focusedbtn || document.querySelector("notification:hover");
+    if (!thenode) thenode = document.querySelector("vbox.notificationbox").lastElementChild;    
+    const gClipboardHelper = Components.classes["@mozilla.org/widget/clipboardhelper;1"]
+                                    .getService(Components.interfaces.nsIClipboardHelper);
+    gClipboardHelper.copyString( thenode.label || thenode );    
+}
+
+function updateMenu(anevt)
+{
+//    window.console.log("updateMenu: ", document.querySelector("*:focus").tagName);
+    if (!(nodemsg.focusedbtn)) nodemsg.focusedbtn = document.querySelector("notification:hover");
+    let parent = (nodemsg.focusedbtn || {}).parentNode || {};
+    document.getElementById("cmd_copy").setAttribute("disabled", (nodemsg.focusedbtn) ? "false" : "true");
+    let newval = (!(nodemsg.focusedbtn)) || (parent.firstElementChild === nodemsg.focusedbtn);
+    document.getElementById("cmd_hide").setAttribute("disabled", (newval) ? "true" : "false");
+//    window.console.log("updateMenu: ", document.querySelector("notification:hover"));
 }
 
 function cmdClear(acmd)
@@ -589,4 +605,4 @@ function cmdClear(acmd)
 
 window.addEventListener( "unload", nodemsg, false );
     nodemsg.initialize();
-//    window.setTimeout( function() { window.location.href = classDescription }, 0 );
+//    .setTimeout( function() { window.location.href = classDescription }, 0 );

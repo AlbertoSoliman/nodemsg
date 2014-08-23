@@ -20,6 +20,7 @@
 <!ENTITY quasichatDivContent.label "Используй соответствующую страницу Настроек и команду Обновить (F5).">
 <!ENTITY quasichatRunBtn.tooltiptext "перезапустить внешнюю команду">
 <!ENTITY quasichatCloseBtn.tooltiptext "закрыть одну планку">
+<!ENTITY quasichatCopyBtn.tooltiptext "скопировать содержимое">
 <!ENTITY quasichatExCmd.tooltiptext "внешняя команда">
 <!ENTITY quasichatAckValue.tooltiptext "окрашена когда нагружена">
 <!ENTITY quasichatTimeStamp.tooltiptext "момент события">

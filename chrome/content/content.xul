@@ -4,13 +4,14 @@
 
 <window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:html="http://www.w3.org/1999/xhtml"
-        id="main-window" contextmenu="main-menu"
+        id="main-window" contextmenu="main_menu"
         title="Node Messenger" >
 
 <html:link rel="icon" href="chrome://nodemsg/skin/toggle.png" style="display:none" />
 
 <html:style type="text/css" xmlns="http://www.w3.org/1999/xhtml">
     form { margin: 1ex }
+    form > label { margin-left: 1em }
     input[type="number"] { width: 5em }
     description.header { width: 11ex }
     textbox.timeStamp, deck > textbox { width: 6em; text-align: center; }
@@ -19,23 +20,23 @@
         -moz-appearance: none; 
     }
     deck > textbox:not(:first-child) { background-color: cornflowerblue; }
+    notification hbox.outset hbox { -moz-user-focus: normal; }
     notification > button { visibility: collapse; }
     notification:hover > button { visibility: visible; }
     notification:only-child:hover > button { visibility: collapse; }
-    form > label { margin-left: 1em }
+    notification > span { display: inline; float: right; }
     separator { width: 1em }
     textarea[persist] { 
         min-height: 4em;
         border-bottom-right-radius: 3em 3em; 
     }
-    notification > span { display: inline; float: right; }
 </html:style>
 
-<commandset oncommand="happening(event);">
+<commandset class="main" oncommand="happening(event);">
     <command id="cmd_send" disabled="true" 
              label="SEND" accesskey="s" />
     <command id="cmd_clear" class="clear" disabled="true" 
-             label="CLEAR" accesskey="c" 
+             label="CLEAR" accesskey="e" 
              tooltiptext="&quasichatClearBtn.tooltiptext;" />
     <command id="cmd_run" class="run" 
              label="RUN" accesskey="r" 
@@ -45,24 +46,36 @@
              tooltiptext="&quasichatChboxMode.tooltiptext;" />
 </commandset>
 
-<menupopup id="main-menu">
+<menupopup id="main_menu">
     <menuitem command="cmd_send" tooltiptext="&quasichatSendMenu.tooltiptext;" />
     <menuitem command="cmd_clear" tooltiptext="&quasichatClearBtn.tooltiptext;" />
     <menuitem command="cmd_run" tooltiptext="&quasichatRunBtn.tooltiptext;" />
     <menuseparator />
     <menuitem command="cmd_mode" type="checkbox" label="MODE" accesskey="M" />
 </menupopup>
+
+<commandset class="notification">
+    <command id="cmd_copy" label="Copy" accesskey="C" oncommand="copyLine();" />
+    <command id="cmd_hide" label="Hide" accesskey="H" oncommand="hideLine();" />
+</commandset>
     
+<menupopup id="notify_menu" onpopupshowing="updateMenu(event);">
+    <menuitem command="cmd_copy" />
+    <menuitem command="cmd_hide" />
+</menupopup>
+
 <vbox>
     <html:form xmlns="http://www.w3.org/1999/xhtml">
-        <label for="form-addr">broadcast address:</label>
-            <input name="addr" id="form-addr" type="text" readonly="true" />
-        <label for="form-port">shared port:</label>
-            <input name="port" id="form-port" type="number" readonly="true" />
+        <label for="form_addr">broadcast address:</label>
+            <input name="addr" id="form_addr" type="text" readonly="true" />
+        <label for="form_port">shared port:</label>
+            <input name="port" id="form_port" type="number" readonly="true" />
         <div style="float: right;">
-        <label for="form-btn">&quasichatDivContent.label;</label>
-        <input id="form-btn" type="submit" disabled="true" value="options..."
-               title="will come with next version" />
+            <label for="form_btn" title="Manage your add-ons.">
+                <a href="about:addons#addon-list">&quasichatDivContent.label;</a>
+            </label>
+            <input id="form_btn" type="submit" disabled="true" value="options..."
+                   title="will come with next version" />
         </div>
     </html:form>
 
@@ -80,11 +93,12 @@
     </hbox>
 
     <vbox class="notificationbox" dir="reverse">
-        <notification type="info" onclick="notificationClick(this);"
+        <notification type="info" contextmenu="notify_menu"
+            onfocus="nodemsg.focusedbtn = this;"
             image="chrome://global/skin/icons/information-16.png">
-            <button label="hide" icon="close" 
-                    tooltiptext="&quasichatCloseBtn.tooltiptext;"
-                    oncommand="this.parentNode.close();" />
+            <button command="cmd_copy" icon="save" 
+                    onfocus="nodemsg.focusedbtn = this.parentNode;"
+                    tooltiptext="&quasichatCopyBtn.tooltiptext;" />
             <description class="monospace" value="" />
             <html:span></html:span>
         </notification>
@@ -119,7 +133,7 @@
 
     <textbox class="send" rows="6" autofocus="true" multiline="true" flex="1"
              onkeypress="nodemsg.lastKeyCode = (event.charCode || event.keyCode);"
-             onblur= "nodemsg.lastKeyCode = 0;" oninput="updateView();" />
+             onblur="nodemsg.lastKeyCode = 0;" oninput="updateView();" />
 
     <hbox align="center" class="transmitter">
     <description class="header" value="transmitter:" 

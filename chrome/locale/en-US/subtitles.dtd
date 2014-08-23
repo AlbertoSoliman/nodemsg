@@ -20,6 +20,7 @@
 <!ENTITY quasichatDivContent.label "Use Preferences page of this Add-on then Reload (F5).">
 <!ENTITY quasichatRunBtn.tooltiptext "(re) start node (exe)">
 <!ENTITY quasichatCloseBtn.tooltiptext "close one line">
+<!ENTITY quasichatCopyBtn.tooltiptext "copy content of line">
 <!ENTITY quasichatExCmd.tooltiptext "external command">
 <!ENTITY quasichatAckValue.tooltiptext "in color is just now">
 <!ENTITY quasichatTimeStamp.tooltiptext "time stamp">
