@@ -47,6 +47,8 @@ var cartridge = { //  host { demon, [ content ] }
 //  out: location or currentInnerWindowID from @in
     push : function(ahost, asbn)
     {
+        if ((ahost || "").indexOf(":") < 0)
+            throw(Components.results.NS_ERROR_UNKNOWN_HOST);
         this.filter(asbn);
         if ("content" in (this[ ahost ] || {})) 
         {
@@ -288,20 +290,17 @@ var NodeMonitor = {
         try {
             if (therun)
             {
+                let thaddr = thehost.join(":");
                 if (thelaunch.isRunning) thelaunch.kill();
+                else if (!(thaddr in cartridge))
+                    throw(Components.results.NS_ERROR_NOT_INITIALIZED);
                 thelaunch = { "isRunning": false, "exitValue": 0 };
-                this.updateItem(thehost.join(":"), thelaunch);
+                this.updateItem( thaddr, thelaunch );
                 this.runNodeMainjs( thewin, thedoc, thehost );
             }
-/*            else   
-            {
-                thewin.console.log("_dvk_dbg_, test send cmd of component:");
-                    thewin.console.log(thelaunch);
-            }   */
         }
         catch (err) {
-            Components.utils.reportError(err);
-            thebug = err;
+            Components.utils.reportError(thebug = err);
             thewin.console.warn(ADDON_ISBN, "process-run: ", anevt);
             thewin.console.warn(ADDON_ISBN, err);
         }
@@ -310,11 +309,9 @@ var NodeMonitor = {
                         "isRunning": false, 
                         "exitValue": 0 }; // notifying by send btn
             thehost = thehost.join(":");
+
         if (thebug) theobj = bug2storage("process-run", thebug);
         else
-        if (thelaunch)
-        {
-            if (thelaunch.isRunning) return;
             if (therun)
             {
                 setTimeout( function() {
@@ -324,11 +321,14 @@ var NodeMonitor = {
                 notify5pref.doCmd( thehost, 1 );
                 return;
             }
+
+        if (!(thelaunch.isRunning))
+        {
+            if (therun) theobj["class"] = "run"; // urgency, in other words
+            this.updateItem(thehost, theobj);
+    //        setTimeout( function() { notify5pref(NodeMonitor.host) }, 1 );
+            notify5pref.doCmd( thehost);
         }
-        if (therun) theobj["class"] = "run";
-        this.updateItem(thehost, theobj);
-//        setTimeout( function() { notify5pref(NodeMonitor.host) }, 1 );
-        notify5pref.doCmd( thehost);
         return; // handleEvent : function(anevt)
     },
 
@@ -364,8 +364,7 @@ var NodeMonitor = {
             retval.isbn = cartridge.push(thehost, retval.isbn);
         }
         catch (err) {
-            thebug = err;
-            Components.utils.reportError(err);
+            Components.utils.reportError(thebug = err);
         }
 //    awindow.console.log("init: ", thehost);
         if (thebug)

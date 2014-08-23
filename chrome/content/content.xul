@@ -20,6 +20,7 @@
         -moz-appearance: none; 
     }
     deck > textbox:not(:first-child) { background-color: cornflowerblue; }
+    vbox > notification { transition-duration: 300ms, 999ms; }
     notification hbox.outset hbox { -moz-user-focus: normal; }
     notification > button { visibility: collapse; }
     notification:hover > button { visibility: visible; }

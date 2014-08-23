@@ -16,7 +16,7 @@
          pref="extensions.nodemsg.sharedPort"
          title="&quasichatSharedPort.setitle;" />
 
-   <setting type="file" 
+   <setting type="file" class="nodemsg" 
          pref="extensions.nodemsg.localNode"
          title="&quasichatLocalNode.setitle;"
          desc="&quasichatLocalNode.desc;" />

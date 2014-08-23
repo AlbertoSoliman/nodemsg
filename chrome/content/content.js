@@ -105,9 +105,9 @@ var rendezvous = {
 
         let unitSocket = Components.classes["@mozilla.org/network/socket-transport-service;1"]
                     .getService(Components.interfaces.nsISocketTransportService);
-        let socketTransport = unitSocket.createTransport( ["udp"], 1, 
-                                            (atype) ? LOCAL_HOST : this.addr, 
-                                                            this.port, null);
+        let socketTransport = unitSocket.createTransport( ["udp"], 1, // Array of socket type strings. 
+                                            (atype) ? LOCAL_HOST : this.addr, // Specifies the target address literal.
+                                                this.port, null); // the port and the transport-layer proxy type to use. 
         let inputStream = socketTransport.openInputStream(0, 0, 0);
         let scriptible = Components.classes["@mozilla.org/scriptableinputstream;1"]
                             .createInstance(API_INPUT_STR);
@@ -513,8 +513,8 @@ var nodemsg = {
             label = (new Date(value)).toLocaleTimeString();
             timestamp.setAttribute( "value", label );
         }
-//        thenode.addEventListener( "focus", function(anevt) 
-  //          { nodemsg.focusedbtn = anevt.currentTarget }, false );
+        thenode.setAttribute("style", "opacity: 0");
+        window.setTimeout(function(anode) { anode.removeAttribute("style") }, 0, thenode);
         let thelast = thebox.lastElementChild;
         if (isEqualNotification(thenode, thelast))
         {
@@ -526,7 +526,6 @@ var nodemsg = {
             thebox.replaceChild(thenode, thelast);
         }
             else thebox.appendChild(thenode);
-
         return;
     }   //  notify : function(acfg)
 }
@@ -545,16 +544,9 @@ function updateView()
 function happening(anevt)
 {
     nodemsg.focusedbtn = null;
-       //  anevt.target is cmd dom node
-    if (anevt.target.hasAttribute("checked")) 
-    {
-        if (rendezvous.running) updateView();
-        return;
-    }
-    //  else // usual command
-    updateView();
+    updateView();   // usual command
+    if (!(anevt.target.hasAttribute("checked")))
     document.querySelector(".transmitter > .timeStamp").value = "";
-    return;
 }
 
 function hideLine()

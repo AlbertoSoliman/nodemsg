@@ -1,6 +1,12 @@
 .nodemsg label[control] { width: 11em; }
-.nodemsg[type="string"] hbox textbox { -moz-box-flex: 0; }
+.nodemsg[type="string"] hbox textbox 
+{ 
+    -moz-box-flex: 0; 
+    min-width: 13em;
+}
 .nodemsg[type="integer"] hbox textbox { -moz-box-flex: 0; }
+.nodemsg[type="file"] > .preferences-alignment 
+    { background-color: Window; }
 .nodemsg input.numberbox-input { text-align: left; }
 .nodemsg[disabled] > vbox { color: graytext; }
 groupbox > caption[flex] > label { text-align: center; }
