@@ -128,14 +128,16 @@ var rendezvous = {
             throw err;
         }
 //    window.console.log("_dvk_dbg_, msg is send, available: ", thelen);
-        this.hash = parseInt(0), thelen = (ablank.msg || "").length;
+        amsg = (atype) ? ablank.msg : amsg;
+        this.hash = parseInt(0), thelen = (amsg || "").length;
         if ((thelen >> 1) && (ablank.type == "gab"))
         {            
-            thelen = str2djb(ablank.msg);
-            ablank.msg = decodeURIComponent(ablank.msg);
-                insetrMsg(ablank.msg);
+            thelen = str2djb(amsg);
+            if (atype) amsg = decodeURIComponent(amsg);
+                else amsg = amsg.replace(/^d+\s+/, "");
+            insetrMsg(amsg);
             let thenode = document.querySelector("hbox.transmitter > textbox[flex]");
-                thenode.value = getFirstLine(ablank.msg, true); // last line
+                thenode.value = getFirstLine( amsg, true ); // last line
             cmdClear(null); //cument.getElementById("cmd_clear").doCommand();
             thenode = document.querySelector("hbox.transmitter > .timeStamp");
                 thenode.value = (new Date()).toLocaleTimeString();
