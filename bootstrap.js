@@ -14,6 +14,7 @@ const   PREF_NEW_WIN	= "extensions.nodemsg.openNewWin"
 const   SET_OF_PREFS    = [ PREF_NODE_EXE, PREF_ADDRESS, PREF_PORT, PREF_NEW_WIN ]
 
 const   WINOS_NODEJS    = "C:\\Program Files\\nodejs\\node.exe"
+const   xNUX_SHEBANG    = "/usr/bin/node"
 const	XUL_NAMESPACE	= "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 const	XUL_CMD_ISBN	= "nodemsg_cmd_openMainPage"
 const	XUL_CMD_MENU	= "nodemsg_menu_openMainPage"
@@ -386,19 +387,24 @@ function setDefaultPrefs(areason)
 	thebranch.setBoolPref(getLastToken(PREF_NEW_WIN), false);
 
         thename = getLastToken(PREF_NODE_EXE);
+    let likeval = xNUX_SHEBANG;
     if (isWinOS()) // winnt
-    try {
+    {
         thebranch.setCharPref(thename, "node.exe");
+        likeval = WINOS_NODEJS;
+    }
+        else thebranch.setCharPref(thename, "node");
+
+    try {
     let thefile = Components.classes["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
-            thefile.initWithPath(WINOS_NODEJS);
+            thefile.initWithPath(likeval);
         if (thefile.exists())
             if (thefile.isFile()) 
-                thebranch.setCharPref(thename, WINOS_NODEJS);
+                thebranch.setCharPref(thename, likeval);
     }
     catch (err) {
 	   Components.utils.reportError(err)
     }
-        else thebranch.setCharPref(thename, "node");
 }   //   setDefaultPrefs(areason)
 
 function startup(data, areason)
