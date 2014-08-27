@@ -134,7 +134,7 @@
         <separator />
     </hbox>
 
-    <textbox class="send" rows="6" autofocus="true" multiline="true" flex="1"
+    <textbox class="send" rows="6" multiline="true" flex="1"
              onkeypress="nodemsg.lastKeyCode = (event.charCode || event.keyCode);"
              onblur="nodemsg.lastKeyCode = 0;" oninput="updateView();" />
 

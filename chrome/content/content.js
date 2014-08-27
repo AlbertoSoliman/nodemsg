@@ -10,7 +10,7 @@ const chromeSkin    = "chrome://global/skin/icons"
 const REGEX_TRIM    = /(^\s+)|(\s+$)/g
 const RAW_FORMAT    = "  " //   in main.js PREFIX    = "  ";     // double space
 const LOCAL_HOST = '127.0.0.1', PREFIX = ">", INTERVAL = 111; // x 2 for updateView
-    //nst XPATH_ACK_STAMP = "hbox.ack .timeStamp"
+const XPATH_RUN_BTN = "hbox > button:only-of-type"
 const PORT_ACCESS_NOT_ALLOWED   = parseInt(3);
 const FILE_ACCESS_DENIED        = parseInt(8);
 const ERROR_ALREADY_CONNECTED   = parseInt(19);
@@ -263,7 +263,8 @@ var nodemsg = {
                 this.running = theobj.isRunning;
                 document.querySelector("textbox.ack").value = this._isbn;
             }
-
+            window.setTimeout( function(anode) { anode.focus() }, 0, 
+                                document.querySelector(XPATH_RUN_BTN) );
             let thebox = document.querySelector("deck") || {};
             let thenode = thebox.firstElementChild;
             for (let i = 0; i < 4; ++i)
@@ -334,7 +335,7 @@ var nodemsg = {
     {
         function updateBtn(asbn, anewval)
         {
-            const btn2next = { "cmd_send": "textbox.send", "cmd_clear": "hbox > button:only-of-type" };
+            const btn2next = { "cmd_send": "textbox.send", "cmd_clear": XPATH_RUN_BTN };
             let thebtn = document.querySelector([ "button[command='", "']" ].join(asbn)) || {};
             document.getElementById(asbn).setAttribute("disabled", (anewval) ? "false" : "true");
             if (!anewval) 

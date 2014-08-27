@@ -18,7 +18,7 @@ var PORT    = parseInt(8181),
 //  TODO: Some var's to limit of memory usage.
 
 var cmdops = require('./commander'); //    "name": "commander", "version": "2.2.0"
- cmdops.version('0.1.1').description(DESCRIPTION)
+ cmdops.version('0.1.3').description(DESCRIPTION)
     .usage('[--port (-p) nnn] [--addr (-a) *.255] // length of one msg < 500')
     .option('-o, --once [once]', 'one diagnostic round', false)
     .option('-p, --port [n]', 'union nodes should share the same port', PORT, parseInt)
@@ -52,7 +52,7 @@ var GARBAGE = { '127.0.0.1': [] }; // one host for one msg, more is over
 
 var dgram   = require('dgram');
 var client  = dgram.createSocket('udp4');
-var server  = dgram.createSocket('udp4');
+var server  = dgram.createSocket('udp4'); // TODO: udp6 ?
 var task    = { 
     timeStamp : Date.now(),
     tickTack: null,         // setInterval( relay...
