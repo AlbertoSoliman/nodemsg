@@ -186,9 +186,10 @@ var rendezvous = {
         if (!themsg) return 0; // no data
 
         if (nodemsg.running) setClrAck((new Date()).toLocaleTimeString());
-        if ((themsg || "").indexOf(":") > 1) 
+            themsg = (themsg || "").replace(/^:+/, "");
+        if ((themsg.indexOf(":") > 0) && (themsg.indexOf(RAW_FORMAT) > 1))
         {
-            this.job2face(themsg); 
+            this.job2face(themsg);
             if (this.counter) --this.counter;
         }
         else {
@@ -201,16 +202,17 @@ var rendezvous = {
 
     job2face : function(themsg)
     {
-        let domain = themsg.split(":")[0] || "";
+        let prefix = (themsg.split(RAW_FORMAT)[0] || "").trim();
+        let timeStamp = (prefix.match(/\d+$/) || ([ "0" ]))[0];
+        let domain = prefix.replace(/:\d+\s*$/, "");
         if (!(domain.endsWith(LOCAL_HOST)))
         {
-            themsg = themsg.replace(domain.concat(":"), "");
-            let timeStamp = (themsg.match(/^\s*\d+\s/) || ([ "0" ]))[0];
-                themsg = themsg.replace(/^\s*\d+\s+/, "");
-                timeStamp = Number(timeStamp.trim()) || parseInt(0);
-                timeStamp = new Date(timeStamp || Date.now());
+            themsg = themsg.replace(prefix, "").trim();
+//            let timeStamp = (themsg.match(/^\s*\d+\s/) || ([ "0" ]))[0];
+            timeStamp = Number(timeStamp.trim()) || parseInt(0);
+            timeStamp = new Date(timeStamp || Date.now());
             themsg = decodeURIComponent(themsg);
-            insetrMsg(themsg, domain);
+                insetrMsg(themsg, domain);
             let thenode = document.querySelector("hbox.receiver > textbox[flex]");
                 thenode.value = getFirstLine(themsg);
                 thenode = document.querySelector("hbox.receiver > .timeStamp");
@@ -269,6 +271,10 @@ var nodemsg = {
             let thenode = thebox.firstElementChild;
             for (let i = 0; i < 4; ++i)
                  thebox.appendChild(thenode.cloneNode(false));
+            let form = document.querySelector("form");
+            let thelen = (form.addr.value || "").length;
+            if ((form.addr.size || 20) < thelen)
+                form.addr.setAttribute("size", thelen);
         }
         else //  below something wrong
         {

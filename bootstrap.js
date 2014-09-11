@@ -73,10 +73,9 @@ function install(data, areason)
   // called when startup() has never been called before it.
 function uninstall(data, areason)
 {
-//    Services.prefs.setIntPref(PREF_NOTIFY, 0);
-    if (areason != ADDON_UPGRADE)   // TODO: test.
-        SET_OF_PREFS.forEach( function(anattr)
-            { Services.prefs.deleteBranch(anattr) } );
+//    if (areason != ADDON_UPGRADE)
+    SET_OF_PREFS.forEach( function(anattr)
+        { Services.prefs.deleteBranch(anattr) } );
     Services.prefs.deleteBranch(PREF_NOTIFY);
 }
 
@@ -112,7 +111,7 @@ var gWinobserver = {
         else    // "domwindowclosed", clearing sub system.
             thedoc = (asubject.document || {}).documentElement;
 
-        if (thedoc)
+        if (thedoc) // main window has been closed
         if (thedoc.getAttribute("windowtype") == MAIN_WINTYPE)
             setTimeout( function() { 
                 let content, nodemsg = false;
@@ -189,8 +188,8 @@ function loadOverlay(awindow)
         themenu.setAttribute("command", XUL_CMD_ISBN);
         themenu.setAttribute("label", XUL_CMD_LABEL);
     thebody.appendChild(themenu);
-    
-    return; //  TODO: load *.xul to browser
+
+    return;
 }
 
 var gInlineObserver = {
@@ -499,6 +498,5 @@ function shutdown(data, areason)
     Services.obs.removeObserver(gInlineObserver, "addon-options-displayed");
         gInlineObserver.handleEvent({}); // type = "unload" || "pagehide"
     if (areason == ADDON_UNINSTALL) uninstall(data, areason);
-//    if(areason != APP_SHUTDOWN) uninstall(data, areason);
     //  dump("shutdown, ");    dump("reason:\t");    dump(areason); dump("\n");
 }

@@ -12,12 +12,14 @@
 <html:style type="text/css" xmlns="http://www.w3.org/1999/xhtml">
     form { margin: 1ex }
     form > label { margin-left: 1em }
+    form > input { background-color: -moz-Dialog }
     input[type="number"] { width: 5em; -moz-user-input: none; }
     description.header { width: 11ex }
+    div.options { float: right }
     hbox textbox[readonly] { 
         -moz-appearance: none;
         background-color: #EBEBE4;
-    }   /*  -moz-Dialog */
+    }
     deck > textbox[readonly] { background-color: ButtonFace; }
     textbox.timeStamp, deck > textbox { width: 6em; text-align: center; }
     deck > textbox { transition: background-color 10s; }
@@ -70,12 +72,12 @@
 <vbox>
     <html:form xmlns="http://www.w3.org/1999/xhtml">
         <label for="form_addr">broadcast address:</label>
-        <input name="addr" id="form_addr" type="text" readonly="true" title="readonly" />
+        <input name="addr" id="form_addr" type="text" size="20" readonly="true" title="readonly" />
         <label for="form_port">shared port:</label>
         <input name="port" id="form_port" type="number" readonly="true" title="readonly" />
-        <div style="float: right;">
+        <div class="options">
             <label for="form_btn" title="Manage your add-ons.">
-                <a href="about:addons#addon-list">&quasichatDivContent.label;</a>
+                <a href="javascript:void(0);">&quasichatDivContent.label;</a>
             </label>
             <input id="form_btn" type="submit" disabled="true" value="options..."
                    title="will come with next version" />

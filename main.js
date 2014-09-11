@@ -4,6 +4,7 @@ const DESCRIPTION = "The Node Messenger via udp:\n\t- listens to a given port\n\
     " last operation is reliable, i.e. is not repeated.\n";
 
 const PREFIX    = "  ";     // double space
+const COLON     = ':';
 const LOCAL_HOST = '127.0.0.1';  //  "192.168.1.33";
 const ENCODING  = 'utf8';   // buffer to String
 const MAX_LEN   = 1024;      // limit to len of one datagram
@@ -32,10 +33,6 @@ var cmdops = require('./commander'); //    "name": "commander", "version": "2.2.
  TTL = Math.abs(parseInt(cmdops.ttl) || parseInt(TTL));
     if (TTL > 60) TTL = parseInt(60); // one minute
 
- console.info( "configuration - ".concat([ ADDRESS, PORT ].join(" : ")) );
- console.info( [ "\ttime to live of repeater: ", " sec" ].join(TTL) );
-    TTL *= 1000; // to milliseconds
-        
 //  http://www.cse.yorku.ca/~oz/hash.html
 function str2djb(astr) {    // i.e. md5 that is not md5
   var hash = 5381, i = astr.length;
@@ -49,10 +46,15 @@ function str2djb(astr) {    // i.e. md5 that is not md5
 var CACHE   = { }; //  addr [ timeStamp + PREFIX + msg, ... ]
 var GARBAGE = { '127.0.0.1': [] }; // one host for one msg, more is over
 //  TODO: clearing sub system.
+var UDP_LIB = (ADDRESS.indexOf(COLON) + 1) ? 'udp6' : 'udp4';
+var dgram = require('dgram'),
+    client  = dgram.createSocket(UDP_LIB),
+    server  = dgram.createSocket(UDP_LIB); // TODO: udp6 ?
 
-var dgram   = require('dgram');
-var client  = dgram.createSocket('udp4');
-var server  = dgram.createSocket('udp4'); // TODO: udp6 ?
+ console.info( "configuration - ".concat([ ADDRESS, PORT ].join(" : ")) );
+ console.info( "library - ".concat(UDP_LIB), [ "\ttime to live of repeater: ", " sec" ].join(TTL) );
+    TTL *= 1000; // to milliseconds
+
 var task    = { 
     timeStamp : Date.now(),
     tickTack: null,         // setInterval( relay...
@@ -104,17 +106,19 @@ var task    = {
 server.on('listening', function () {
     var address = server.address();
     server.setBroadcast(true); // ?
-    console.log('UDP Server listening on ' + address.address + ":" + address.port);
+    console.log('UDP Server listening on ' + address.address + COLON + address.port);
     client = null;
 });
 
 server.on('message', function (message, remote) 
 {
     var address = remote.address || "";
-    var themsg = [ address, remote.port ].join(':');
-
+    var themsg = [ address, remote.port ].join(COLON);
+//  console.log("\tmsg event: ", themsg);
     var thestr = message.toString(ENCODING, 0, MAX_LEN).trim();
-    if (address == LOCAL_HOST) // relay
+    var index = address.lastIndexOf(LOCAL_HOST) + 1;
+    if (index--) //   if find
+    if ((index == 0) || (address[--index] == COLON)) // relay
     {
     var timeStamp = parseInt(Date.now() / 1000) * 1000;
         var theobj = { "type": "gab" };
@@ -155,26 +159,22 @@ server.on('message', function (message, remote)
             delete CACHE[theaddr];
         }
 
+        var packet = null;
         if (themsg.length && theaddr)
-        {
-//            if (themsg)
-            themsg = new Buffer([ theaddr, themsg ].join(":"));
-            server.send( themsg, 0, themsg.length, remote.port, address );
-        }
+            packet = new Buffer([ theaddr, themsg ].join(COLON));
         else
         if (thestr.length >> 1) // echo, original is 127.0.0.1
         {
-//    console.log("echo: ", thestr);
-            var packet = new Buffer([ LOCAL_HOST, thestr ].join(":"));
-//            setTimeout( function() {
-            server.send( packet, 0, packet.length, remote.port, LOCAL_HOST );
+            themsg = [ LOCAL_HOST, timeStamp ].join(COLON);
+            packet = new Buffer([ themsg, thestr ].join(PREFIX));
         }
+//            packet = new Buffer([ LOCAL_HOST, thestr ].join(COLON));
+        if (packet) server.send( packet, 0, packet.length, remote.port, address );
 //  TODO: activate clearing .  else
         return;
     }   //  if (address == LOCAL_HOST) // relay
 
 //    console.log([ themsg, message.length ].join(' - '));
-    
     var themd5 = null;
     if ((thestr.indexOf(PREFIX) + 1) >> 1)
     {
@@ -188,14 +188,14 @@ server.on('message', function (message, remote)
             else GARBAGE[address] = [];
         if (thepos + 1) return;
     }
-    else { 
+    else {
     console.log('prefix of msg is wrong: ', thestr.substr(0, 33));
         return;
     }
     GARBAGE[address].push(themd5);
     if (address in CACHE) CACHE[address].push(thestr);
         else CACHE[address] = [thestr];
-//      CACHE[address].push( [ address, thestr ].join(":") );
+//      CACHE[address].push( [ address, thestr ].join(COLON) );
 
     return;
 }); //  server.on('message' ...
@@ -224,8 +224,8 @@ client.on('close', function () { server.bind(PORT) });
 client.on('message', function (message, remote) 
 {
     var thestr = message.toString(ENCODING, 0, MAX_LEN).trim();
-        randomstr = [ LOCAL_HOST, randomstr ].join(':');
-	if (thestr.indexOf(randomstr) + 1)
+//        randomstr = [ LOCAL_HOST, randomstr ].join(COLON);
+	if ((thestr.indexOf(LOCAL_HOST) + 1) && (thestr.indexOf(randomstr) > 1))
 	{
         console.warn("Nodejs server already exists, port: ", PORT);
 		process.exit(ERROR_ALREADY_CONNECTED);
@@ -239,7 +239,7 @@ client.on('message', function (message, remote)
         if (err)
         {
             console.error(err);
-            process.exit(getExitCode(error.errno || error.code));
+            process.exit(getExitCode(err.errno || err.code));
         }
         else    // to cruise
         {

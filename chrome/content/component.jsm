@@ -346,13 +346,13 @@ var NodeMonitor = {
                 let addonLocation = addon.getResourceURI(NODE_SCRIPT).QueryInterface(Ci.nsIFileURL).file.path;
                     theself.resource = addonLocation || theself.resource;
             } ); // .AddonManager.getAddonByID( this.ADDON_ISBN, function(addon)
-
+            let thedoc = awindow.document;
             awindow.addEventListener("pagehide", this, false);
             awindow.addEventListener("unload", this, false);
 //            awindow.console.log("_dvk_dbg_, NodeMonitor: init");
-            let thebtn = awindow.document.getElementById("cmd_run");
+            let thebtn = thedoc.getElementById("cmd_run");
                 thebtn.addEventListener("command", this, true);
-            thebtn = awindow.document.getElementById("cmd_send");
+            thebtn = thedoc.getElementById("cmd_send");
                 thebtn.addEventListener("command", this, true);
 //   TODO: retval - addr, port (host), isbn (cookie), salute
             //  test tail of documentURIObject.path
@@ -362,6 +362,16 @@ var NodeMonitor = {
 //                cartridge[ thehost ].content.push(retval.isbn);
             if (!(thehost in cartridge)) this.clearStorage(thehost);
             retval.isbn = cartridge.push(thehost, retval.isbn);
+            let thenode = thedoc.documentElement.querySelector("div.options a");
+            if (thenode) thenode.addEventListener("click", function(anevt) {
+                    let thedoc = anevt.currentTarget.ownerDocument;
+                    let thewin = Services.ww.activeWindow || {};
+                    if (thewin.switchToTabHavingURI) {
+                        let retval = thewin.switchToTabHavingURI("about:addons#addon-list", false);
+                        if (retval) thedoc = null;
+                    }
+                    if (thedoc) thedoc.location.assign("about:addons#addon-list");
+                }, false);
         }
         catch (err) {
             Components.utils.reportError(thebug = err);
