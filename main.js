@@ -7,7 +7,7 @@ const PREFIX    = "  ";     // double space
 const COLON     = ':';
 const LOCAL_HOST = '127.0.0.1';  //  "192.168.1.33";
 const ENCODING  = 'utf8';   // buffer to String
-const MAX_LEN   = 1024;      // limit to len of one datagram
+const MAX_LEN   = 2048;      // limit to len of one datagram
 const ERROR_ALREADY_CONNECTED = parseInt(19);
 const ERROR_UNEXPECTED = parseInt(-1);
 const errno2code = { 'EACCES': 3 };
@@ -45,15 +45,27 @@ function str2djb(astr) {    // i.e. md5 that is not md5
 
 var CACHE   = { }; //  addr [ timeStamp + PREFIX + msg, ... ]
 var GARBAGE = { '127.0.0.1': [] }; // one host for one msg, more is over
-//  TODO: clearing sub system.
+var TACKTACK= null;
 var UDP_LIB = (ADDRESS.indexOf(COLON) + 1) ? 'udp6' : 'udp4';
 var dgram = require('dgram'),
     client  = dgram.createSocket(UDP_LIB),
-    server  = dgram.createSocket(UDP_LIB); // TODO: udp6 ?
+    server  = dgram.createSocket(UDP_LIB);
 
  console.info( "configuration - ".concat([ ADDRESS, PORT ].join(" : ")) );
  console.info( "library - ".concat(UDP_LIB), [ "\ttime to live of repeater: ", " sec" ].join(TTL) );
     TTL *= 1000; // to milliseconds
+
+function clearGarbage()
+{
+    TACKTACK = null;
+    console.log("node.js > clearGarbage");
+    for (var key in GARBAGE) {
+        var thevec = GARBAGE[key];
+        if ("shift" in thevec)
+        if ((thevec.length || parseInt(0)) >> 2)
+            thevec.shift();
+     }
+}
 
 var task    = { 
     timeStamp : Date.now(),
@@ -73,10 +85,8 @@ var task    = {
             server.send( this._msg, 0, this._msg.length, PORT, ADDRESS );
         }
         else
-        if (GARBAGE[LOCAL_HOST].length >> 3)
-        {
-//  TODO: clearing sub system, by setTimeout(callback, 
-        }
+        if (!TACKTACK && (GARBAGE[LOCAL_HOST].length >> 3))
+            TACKTACK = setTimeout(function() { clearGarbage() }, TTL);
         return false;
     },
 
@@ -170,7 +180,8 @@ server.on('message', function (message, remote)
         }
 //            packet = new Buffer([ LOCAL_HOST, thestr ].join(COLON));
         if (packet) server.send( packet, 0, packet.length, remote.port, address );
-//  TODO: activate clearing .  else
+            else if (!TACKTACK) 
+                TACKTACK = setTimeout( function() { clearGarbage() }, (TTL / 10) );
         return;
     }   //  if (address == LOCAL_HOST) // relay
 
@@ -181,15 +192,26 @@ server.on('message', function (message, remote)
         themd5 = str2djb(thestr);
         // (task.md5.indexOf(themd5) + 1) return;
         var thepos = GARBAGE[LOCAL_HOST].indexOf(themd5);
-//    console.log('_dvk_dbg_, Host msg: ', thepos);
+        var thelen = (GARBAGE[address] || {}).length || parseInt(0);
         if (!(thepos + 1))
-        if (address in GARBAGE) //  if already found
+            if (thelen) //  if already found
+            {
                 thepos = GARBAGE[address].indexOf(themd5);
-            else GARBAGE[address] = [];
-        if (thepos + 1) return;
+                if ((thepos + 1) && (thelen >> 3))
+                {
+                    var isbn = TACKTACK;
+                    if (TACKTACK) clearTimeout(isbn);
+                    TACKTACK = setTimeout(function() { clearGarbage() }, TTL);
+                }
+            }
+                else GARBAGE[address] = [];
+        if (thepos + 1) return; // loopback msg or already exists
     }
     else {
     console.log('prefix of msg is wrong: ', thestr.substr(0, 33));
+        var thelen = Object.keys(GARBAGE).length;
+        if (!TACKTACK && thelen >> 3)
+            TACKTACK = setTimeout(function() { clearGarbage() }, TTL);
         return;
     }
     GARBAGE[address].push(themd5);

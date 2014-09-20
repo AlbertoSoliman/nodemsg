@@ -9,15 +9,16 @@ const classDescription = "about:nodemsg"
 const chromeSkin    = "chrome://global/skin/icons"
 const REGEX_TRIM    = /(^\s+)|(\s+$)/g
 const RAW_FORMAT    = "  " //   in main.js PREFIX    = "  ";     // double space
-const LOCAL_HOST = '127.0.0.1', PREFIX = ">", INTERVAL = 111; // x 2 for updateView
+const LOCAL_HOST = '127.0.0.1', PREFIX = ">", INTERVAL = 222; // x 2 for updateView
 const XPATH_RUN_BTN = "hbox > button:only-of-type"
+const MAX_LEN       = 1024
 const PORT_ACCESS_NOT_ALLOWED   = parseInt(3);
 const FILE_ACCESS_DENIED        = parseInt(8);
 const ERROR_ALREADY_CONNECTED   = parseInt(19);
 const ERROR_UNEXPECTED = parseInt(-1);
 const FATAL_BUG = [ "storage-or-component-of-page-is-unready",
                    "You can use Reload (F5) command, as least action." ];
-const INFORM_BUG = [ "informal-packet", "See detail in Web Console via Developer Menu." ];
+const INFORM_BUG = "See detail in Web Console via Developer Menu.";
       
 Components.utils.import("resource://gre/modules/Services.jsm")
 Components.utils.import("chrome://nodemsg/content/include.jsm")
@@ -34,11 +35,17 @@ function str2djb(astr) {    // i.e. md5 that is not md5
   return hash >>> 0;
 }
 
-function setClrAck(avalue)
+function updateClrField(aclass, avalue)
 {
-    let thenode = document.querySelector("deck");
-    if (avalue) thenode.appendChild(thenode.firstElementChild);
-    else (document.querySelector("textbox.ack") || {}).value = "";
+    //t thenode = document.querySelector("hbox.receiver > deck");
+    let thesel = [ "hbox", " > deck" ].join(aclass);
+    let thenode = document.querySelector(thesel);
+    if (avalue)
+    {
+        thenode.appendChild(thenode.firstElementChild);
+        avalue = avalue.toLocaleTimeString()
+    }   //  only querySelector("hbox.ack > deck");
+        else (document.querySelector("textbox.ack") || {}).value = "";
     thenode.firstElementChild.value = avalue || ""; //  placeholder
 }
 
@@ -66,7 +73,7 @@ function reportBug(abug, atopic)
 function insetrMsg(amsg, aprefix)
 {
         aprefix = (aprefix || "").concat(PREFIX);
-    let thenode = document.querySelector("textarea");
+    let thenode = document.querySelector("textarea[persist]");
     let thestr  = (thenode.value || "").replace(REGEX_TRIM, "");
     let themsg = [ aprefix, amsg ].join(" ");
     if ((amsg || "").length) thenode.value = [ themsg, thestr ].join("\n");
@@ -89,6 +96,7 @@ var rendezvous = {
     doCmd : function(atype, amsg)
     {
         if (this.socket) return; // guard
+        if (amsg) amsg = amsg.substr(0, MAX_LEN);
         let ablank = { "type": "gab" }
         switch (atype) {
         case "gab" : ablank.msg = encodeURIComponent(amsg) || " ";
@@ -185,15 +193,20 @@ var rendezvous = {
         if (numbyte) themsg = this.socket.read(numbyte) || "";
         if (!themsg) return 0; // no data
 
-        if (nodemsg.running) setClrAck((new Date()).toLocaleTimeString());
+        if (nodemsg.running) updateClrField(".ack", (new Date()));
             themsg = (themsg || "").replace(/^:+/, "");
         if ((themsg.indexOf(":") > 0) && (themsg.indexOf(RAW_FORMAT) > 1))
-        {
+        try {
             this.job2face(themsg);
             if (this.counter) --this.counter;
         }
+        catch (err) {
+            reportBug(err, "udp-read");
+            window.console.warn(ADDON_ISBN, "length: ", themsg.length, " unformatted-packet:");
+            window.console.warn(themsg);
+        }
         else {
-            nodemsg.notify( { "topic": INFORM_BUG[0], "msg" : INFORM_BUG[1], "exitValue": 1 } );
+            nodemsg.notify( { "topic": "udp-read", "msg" : INFORM_BUG, "exitValue": 1 } );
             window.console.warn(ADDON_ISBN, "length: ", themsg.length, " informal-packet:");
             window.console.warn(themsg);
         }
@@ -212,11 +225,9 @@ var rendezvous = {
             timeStamp = Number(timeStamp.trim()) || parseInt(0);
             timeStamp = new Date(timeStamp || Date.now());
             themsg = decodeURIComponent(themsg);
-                insetrMsg(themsg, domain);
-            let thenode = document.querySelector("hbox.receiver > textbox[flex]");
-                thenode.value = getFirstLine(themsg);
-                thenode = document.querySelector("hbox.receiver > .timeStamp");
-                thenode.value = timeStamp.toLocaleTimeString();
+            insetrMsg(themsg, domain), themsg = getFirstLine(themsg);
+            document.querySelector(".receiver > textbox").value = themsg;
+            updateClrField(".receiver", timeStamp);
         }
 //        else { ECHO MSG
     },
@@ -251,6 +262,14 @@ var nodemsg = {
 
     load : function()
     {
+        function revolver(aselector)
+        {
+            let thebox = document.querySelector(aselector) || {};
+            let thenode = thebox.firstElementChild;
+            if (thenode) for (let i = 0; i < 4; ++i)
+                 thebox.appendChild(thenode.cloneNode(false));
+        }
+    
         let theobj = null;
         if (this.storage.getItem) theobj = this.storage.getItem(this.host);
 
@@ -267,10 +286,9 @@ var nodemsg = {
             }
             window.setTimeout( function(anode) { anode.focus() }, 0, 
                                 document.querySelector(XPATH_RUN_BTN) );
-            let thebox = document.querySelector("deck") || {};
-            let thenode = thebox.firstElementChild;
-            for (let i = 0; i < 4; ++i)
-                 thebox.appendChild(thenode.cloneNode(false));
+
+            revolver(".ack > deck"), revolver(".receiver > deck");
+
             let form = document.querySelector("form");
             let thelen = (form.addr.value || "").length;
             if ((form.addr.size || 20) < thelen)
@@ -341,7 +359,7 @@ var nodemsg = {
     {
         function updateBtn(asbn, anewval)
         {
-            const btn2next = { "cmd_send": "textbox.send", "cmd_clear": XPATH_RUN_BTN };
+            const btn2next = { "cmd_send": "textarea.send", "cmd_clear": XPATH_RUN_BTN };
             let thebtn = document.querySelector([ "button[command='", "']" ].join(asbn)) || {};
             document.getElementById(asbn).setAttribute("disabled", (anewval) ? "false" : "true");
             if (!anewval) 
@@ -350,26 +368,30 @@ var nodemsg = {
                                         document.querySelector(btn2next[asbn]) );
         }
 
-        if (!(this.running)) setClrAck();
+        if (!(this.running)) updateClrField(".ack");
         (document.querySelector("textbox.ack") || {}).readOnly = this.running;
 //          if (!(rendezvous.running)) rendezvous.hash = 0;
         document.getElementById("cmd_mode").setAttribute("checked", (this.mode) ? "true" : "false");
-        let thestr = document.querySelector("textbox.send").value || "";
-        let newvalue = (this.running || (thestr.replace(REGEX_TRIM, "").length));
+        let thenode = document.querySelector("textarea.send") || {};
+        if (thenode.clientHeight < thenode.scrollHeight)
+        if (document.querySelector("vbox").clientHeight < document.documentElement.clientHeight)
+            thenode.rows = thenode.rows + 1;
+        let strsend = thenode.value || "";
+        let newvalue = this.running || (strsend.replace(REGEX_TRIM, "").length);
         if (this.lastKeyCode && newvalue)
         {
-            let thenode = document.getElementById("checkbox_return") || {};
+            thenode = document.getElementById("checkbox_return") || {};
             if (this.lastKeyCode == KeyEvent.DOM_VK_RETURN)
-                if (thenode.checked && thestr.match(/\n\s?\n\s?$/))
+                if (thenode.checked && strsend.match(/\n\s?\n\s?$/))
                     window.setTimeout( function(anode) { anode.doCommand() }, 0, 
                                             document.getElementById("cmd_send") );
         }
             updateBtn("cmd_send", newvalue), nodemsg.lastKeyCode = 0;
 
-        let thenode = document.querySelector("vbox.notificationbox") || {};
+        thenode = document.querySelector("vbox.notificationbox") || {};
         newvalue = parseInt(thenode.childElementCount || 0);
-        thestr = (document.querySelector("textbox.send") || {}).value || "";
-            updateBtn("cmd_clear", ((thestr.length) || (newvalue >> 1)));
+//        thestr = (document.querySelector("textarea.send") || {}).value || "";
+        updateBtn("cmd_clear", ((strsend.length) || (newvalue >> 1)));
     },
 
     storage2cfg : function(theobj)
@@ -468,7 +490,7 @@ var nodemsg = {
             case "mode" : this.mode = !(this.mode);
                 break;
             default : // send btn
-                let thenode = document.querySelector("textbox.send");
+                let thenode = document.querySelector("textarea.send");
                 let thestr = (thenode.value || "").replace(REGEX_TRIM, "");
                 if (thestr.length || this.running)
                 if (str2djb(thestr) != rendezvous.hash) // "raw" ?
@@ -586,7 +608,7 @@ function updateMenu(anevt)
 
 function cmdClear(acmd)
 {
-    let textarea = document.querySelector("textbox.send");
+    let textarea = document.querySelector("textarea.send");
     if ((textarea.value || "").length) textarea.value = "";
     else
     try {

@@ -3,7 +3,7 @@
 <!DOCTYPE window SYSTEM "chrome://nodemsg/locale/subtitles.dtd">
 
 <window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns:html="http://www.w3.org/1999/xhtml" 
         id="main-window" contextmenu="main_menu"
         title="Node Messenger" >
 
@@ -114,8 +114,10 @@
             tooltiptext="&quasichatBelow.tooltiptext;" />
     <textbox flex="1" multiline="false" readonly="true" 
              tooltiptext="&quasichatLastMsg.tooltiptext;" />
-    <textbox class="timeStamp" readonly="true" multiline="false" 
+    <deck>
+        <textbox readonly="true" multiline="false" 
              tooltiptext="&quasichatTimeStamp.tooltiptext;" />
+    </deck>
     </hbox>
 
     <html:textarea id="textarea" persist="style" wrap="off"></html:textarea>
@@ -136,9 +138,9 @@
         <separator />
     </hbox>
 
-    <textbox class="send" rows="6" multiline="true" flex="1"
-             onkeypress="nodemsg.lastKeyCode = (event.charCode || event.keyCode);"
-             onblur="nodemsg.lastKeyCode = 0;" oninput="updateView();" />
+    <html:textarea class="send" rows="6"  wrap="off" style="resize: none;"
+        onkeypress="nodemsg.lastKeyCode = (event.charCode || event.keyCode);"
+        onblur="nodemsg.lastKeyCode = 0;" oninput="updateView();"></html:textarea>
 
     <hbox align="center" class="transmitter">
     <description class="header" value="transmitter:" 
