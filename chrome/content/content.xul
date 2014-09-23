@@ -72,7 +72,7 @@
 <vbox>
     <html:form xmlns="http://www.w3.org/1999/xhtml">
         <label for="form_addr">broadcast address:</label>
-        <input name="addr" id="form_addr" type="text" size="20" readonly="true" title="readonly" />
+        <input name="addr" id="form_addr" type="text" size="20" readonly="true" />
         <label for="form_port">shared port:</label>
         <input name="port" id="form_port" type="number" readonly="true" title="readonly" />
         <div class="options">
