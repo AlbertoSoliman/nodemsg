@@ -1,0 +1,2 @@
+The broadcast serverless quasi-chat for LAN via UDP where the Firefox add-on is front-face and Node.js is back-end. The talking people should share the same port.
+![https://nodemsg.googlecode.com/hg/screenshots/nodemsg1.png](https://nodemsg.googlecode.com/hg/screenshots/nodemsg1.png)<br />
